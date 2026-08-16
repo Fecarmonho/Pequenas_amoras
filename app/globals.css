@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-paper font-body text-ink antialiased;
+  }
+}
+
+@layer components {
+  /* Botão de ação principal — gradiente roxo → rosa da identidade. */
+  .btn-primary {
+    @apply bg-gradient-to-r from-amora-700 via-amora-600 to-rosa-500 bg-[length:180%_100%] bg-left transition-[background-position] duration-300 hover:bg-right;
+  }
+
+  .btn-outline {
+    @apply border-2 border-white/70 text-white transition-colors hover:border-white hover:bg-white/10;
+  }
+
+  /* Fundo roxo profundo usado no hero, header e rodapé — o "espaço" da
+     identidade (astronautas, estrelas). */
+  .hero-space {
+    @apply bg-amora-900 text-white;
+  }
+
+  .hero-space-gradient {
+    background: radial-gradient(ellipse 120% 80% at 50% -10%, rgba(171, 124, 224, 0.35), transparent 60%),
+      linear-gradient(160deg, #3b1666 0%, #2a0f47 55%, #3d1660 100%);
+  }
+
+  /* Campo de estrelinhas sutil no fundo roxo — pontinhos, não poluir. */
+  .starfield {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1.5px),
+      radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1.5px);
+    background-size: 140px 140px, 90px 90px;
+    background-position: 0 0, 45px 60px;
+  }
+
+  .card-soft {
+    @apply rounded-3xl border border-amora-900/5 bg-white shadow-card transition-shadow duration-300 hover:shadow-card-hover;
+  }
+
+  .badge-soft {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-amora-100 px-3 py-1 text-xs font-semibold text-amora-700;
+  }
+
+  /* Esconde a barra de rolagem dos carrosséis horizontais. */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Brilho sutil que varre um elemento — usado com moderação (cards em
+     destaque, botão do hero), nunca em tudo ao mesmo tempo. */
+  .shine {
+    @apply relative overflow-hidden;
+  }
+  .shine::after {
+    content: "";
+    @apply pointer-events-none absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent;
+    animation: shine-sweep 5s ease-in-out infinite;
+  }
+}
