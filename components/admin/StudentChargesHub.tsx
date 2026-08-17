@@ -80,7 +80,7 @@ function ExtraRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: ()
   const status = statusEfetivo(charge);
   const conteudo = (
     <>
-      <p className="truncate text-sm font-medium leading-normal text-ink hover:text-amora-700">{charge.descricao}</p>
+      <p className="text-sm font-medium leading-normal text-ink hover:text-amora-700">{charge.descricao}</p>
       <p className="text-xs leading-normal text-ink/40">Vence {formatDate(charge.vencimento)}</p>
     </>
   );
