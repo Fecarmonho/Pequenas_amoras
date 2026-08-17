@@ -41,15 +41,27 @@ function PixLine({ chavePix, ocultarAcoes }: { chavePix: string; ocultarAcoes: b
 
 function ParcelaRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: () => void; ocultarAcoes: boolean }) {
   const status = statusEfetivo(charge);
+  const conteudo = (
+    <>
+      <p className="text-xs font-semibold uppercase leading-normal tracking-wide text-amora-700">
+        {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
+      </p>
+      <p className="mt-1 text-xs leading-normal text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
+    </>
+  );
+
   return (
     <div className="border-b border-dashed border-amora-900/15 py-4 last:border-0">
       <div className="flex items-start justify-between gap-3">
-        <button type="button" onClick={onEdit} disabled={ocultarAcoes} className="min-w-0 flex-1 text-left">
-          <p className="text-xs font-semibold uppercase leading-normal tracking-wide text-amora-700">
-            {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
-          </p>
-          <p className="mt-1 text-xs leading-normal text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
-        </button>
+        {/* html2canvas não renderiza <button> de forma confiável (texto
+            sai cortado) — na exportação do PDF usamos uma div comum. */}
+        {ocultarAcoes ? (
+          <div className="min-w-0 flex-1 text-left">{conteudo}</div>
+        ) : (
+          <button type="button" onClick={onEdit} className="min-w-0 flex-1 text-left">
+            {conteudo}
+          </button>
+        )}
         {!ocultarAcoes && <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />}
       </div>
       <div className="mt-2 flex items-end justify-between">
@@ -66,12 +78,23 @@ function ParcelaRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: 
 
 function ExtraRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: () => void; ocultarAcoes: boolean }) {
   const status = statusEfetivo(charge);
+  const conteudo = (
+    <>
+      <p className="truncate text-sm font-medium leading-normal text-ink hover:text-amora-700">{charge.descricao}</p>
+      <p className="text-xs leading-normal text-ink/40">Vence {formatDate(charge.vencimento)}</p>
+    </>
+  );
   return (
     <div className="flex items-center justify-between gap-3 border-b border-dashed border-amora-900/10 py-3.5 last:border-0">
-      <button type="button" onClick={onEdit} disabled={ocultarAcoes} className="min-w-0 flex-1 text-left">
-        <p className="truncate text-sm font-medium leading-normal text-ink hover:text-amora-700">{charge.descricao}</p>
-        <p className="text-xs leading-normal text-ink/40">Vence {formatDate(charge.vencimento)}</p>
-      </button>
+      {/* html2canvas não renderiza <button> de forma confiável (texto sai
+          cortado) — na exportação do PDF usamos uma div comum. */}
+      {ocultarAcoes ? (
+        <div className="min-w-0 flex-1 text-left">{conteudo}</div>
+      ) : (
+        <button type="button" onClick={onEdit} className="min-w-0 flex-1 text-left">
+          {conteudo}
+        </button>
+      )}
       <span className="shrink-0 text-sm font-semibold text-ink">{formatBRL(charge.valor)}</span>
       <span className="shrink-0 text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
       {!ocultarAcoes && <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />}
@@ -121,7 +144,10 @@ export default function StudentChargesHub({ student, charges }: { student: Stude
           <img src="/brand/logo-badge.png" alt="Pequenas Amoras" className="mx-auto h-14 w-14 rounded-full" />
           <p className="mt-2 font-display text-base font-bold leading-normal text-white">Pequenas Amoras</p>
           <p className="mt-0.5 text-xs leading-normal text-white/60">Contraturno Escolar e Recreação Infantil</p>
-          <p className="mx-auto mt-2 inline-block rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wide text-rosa-200">
+          <p
+            className="mx-auto mt-2 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wide text-rosa-200"
+            style={{ display: "table" }}
+          >
             Recibo de mensalidade — {student.nome}
           </p>
         </div>
