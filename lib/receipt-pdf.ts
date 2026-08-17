@@ -11,6 +11,12 @@ async function gerarPdfBlob(elemento: HTMLElement): Promise<Blob> {
     import("jspdf"),
   ]);
 
+  // Sem isso, o html2canvas às vezes tira a foto antes da fonte customizada
+  // (Fredoka/Poppins) terminar de carregar — o texto sai com a métrica da
+  // fonte de fallback e fica cortado/desalinhado no PDF.
+  await document.fonts.ready;
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
   const canvas = await html2canvas(elemento, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
   const imgData = canvas.toDataURL("image/png");
 
