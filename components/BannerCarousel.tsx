@@ -50,7 +50,7 @@ export default function BannerCarousel({ slides }: { slides: CarouselSlide[] }) 
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative mx-auto max-w-6xl px-4 py-4 sm:py-14" aria-label="Avisos e novidades">
+    <section className="relative mx-auto max-w-6xl px-4 pb-4 pt-0 sm:py-14" aria-label="Avisos e novidades">
       <div className="relative">
         <div
           ref={trackRef}
