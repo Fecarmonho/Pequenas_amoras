@@ -20,6 +20,7 @@ export interface PessoaAutorizada {
 export interface Student {
   id: string;
   nome: string;
+  foto?: string;
   dataNascimento: string;
   cpf?: string;
   dataMatricula: string;

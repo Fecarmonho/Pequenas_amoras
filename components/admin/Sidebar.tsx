@@ -7,9 +7,7 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   { href: "/admin", label: "Dashboard", icon: "📊", exact: true },
   { href: "/admin/estudantes", label: "Estudantes", icon: "🧒" },
-  { href: "/admin/responsaveis", label: "Responsáveis", icon: "👪" },
   { href: "/admin/financeiro/mensalidades", label: "Mensalidades", icon: "💜" },
-  { href: "/admin/financeiro/cobrancas-extras", label: "Cobranças Extras", icon: "➕" },
   { href: "/admin/avisos", label: "Avisos", icon: "📣" },
   { href: "/admin/banners", label: "Carrossel", icon: "🎠" },
   { href: "/admin/galeria", label: "Galeria", icon: "🖼️" },

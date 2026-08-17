@@ -51,10 +51,6 @@ export async function updateGuardian(id: string, data: Partial<Guardian>): Promi
   await adminDb.collection(COLLECTION).doc(id).update(data);
 }
 
-export async function deleteGuardian(id: string): Promise<void> {
-  await adminDb.collection(COLLECTION).doc(id).delete();
-}
-
 export async function addStudentToGuardian(guardianId: string, studentId: string): Promise<void> {
   const guardian = await getGuardianById(guardianId);
   if (!guardian) return;

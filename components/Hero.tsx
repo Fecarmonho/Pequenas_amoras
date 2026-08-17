@@ -6,8 +6,17 @@ export default function Hero() {
     <section className="hero-space hero-space-gradient starfield relative overflow-hidden">
       <FloatingStars count={6} />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:py-28">
-        <div className="text-center lg:text-left">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-6 px-4 py-16 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 lg:py-28">
+        <div className="relative mx-auto w-48 sm:w-64 lg:order-2 lg:w-full lg:max-w-sm">
+          <div className="absolute inset-0 -z-10 rounded-full bg-rosa-500/20 blur-3xl" aria-hidden="true" />
+          <img
+            src="/brand/logo-badge.png"
+            alt="Astronautas da Pequenas Amoras flutuando entre estrelas"
+            className="w-full animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)]"
+          />
+        </div>
+
+        <div className="text-center lg:order-1 lg:text-left">
           <span className="badge-soft bg-white/10 text-rosa-200">
             🚀 Contraturno escolar e recreação infantil
           </span>
@@ -34,15 +43,6 @@ export default function Hero() {
               Área da Família
             </Link>
           </div>
-        </div>
-
-        <div className="relative mx-auto hidden w-full max-w-sm lg:block">
-          <div className="absolute inset-0 -z-10 rounded-full bg-rosa-500/20 blur-3xl" aria-hidden="true" />
-          <img
-            src="/brand/logo-badge.png"
-            alt="Astronautas da Pequenas Amoras flutuando entre estrelas"
-            className="w-full animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)]"
-          />
         </div>
       </div>
 

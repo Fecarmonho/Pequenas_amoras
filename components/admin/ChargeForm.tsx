@@ -13,11 +13,16 @@ export default function ChargeForm({
   students,
   charge,
   backHref,
+  onSaved,
 }: {
   categoria: CategoriaCobranca;
   students: Student[];
   charge?: Charge;
-  backHref: string;
+  /** Pra onde voltar depois de salvar quando o form é uma página cheia. */
+  backHref?: string;
+  /** Quando o form é usado embutido (ex: hub financeiro do aluno), chama
+   * isso em vez de navegar. */
+  onSaved?: () => void;
 }) {
   const router = useRouter();
   const isEdit = Boolean(charge);
@@ -91,7 +96,11 @@ export default function ChargeForm({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Não foi possível salvar.");
 
-      router.push(backHref);
+      if (onSaved) {
+        onSaved();
+      } else if (backHref) {
+        router.push(backHref);
+      }
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar.");
@@ -102,14 +111,18 @@ export default function ChargeForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-amora-900/8 bg-white p-6 shadow-card">
-      <label className="block text-sm font-medium text-ink/70">
-        Estudante
-        <select required value={studentId} onChange={(e) => setStudentId(e.target.value)} className={inputClass}>
-          {students.map((s) => (
-            <option key={s.id} value={s.id}>{s.nome}</option>
-          ))}
-        </select>
-      </label>
+      {students.length > 1 ? (
+        <label className="block text-sm font-medium text-ink/70">
+          Estudante
+          <select required value={studentId} onChange={(e) => setStudentId(e.target.value)} className={inputClass}>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>{s.nome}</option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <input type="hidden" value={studentId} readOnly />
+      )}
 
       {categoria === "extra" && (
         <label className="block text-sm font-medium text-ink/70">
