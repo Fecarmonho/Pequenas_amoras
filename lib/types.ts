@@ -53,6 +53,7 @@ export interface Boleto {
   linkUrl?: string;
   pdfUrl?: string;
   codigoBarras?: string;
+  chavePix?: string;
 }
 
 export interface Charge {

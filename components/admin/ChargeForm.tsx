@@ -38,6 +38,7 @@ export default function ChargeForm({
   const [linkUrl, setLinkUrl] = useState(charge?.boleto?.linkUrl ?? "");
   const [pdfUrl, setPdfUrl] = useState(charge?.boleto?.pdfUrl ?? "");
   const [codigoBarras, setCodigoBarras] = useState(charge?.boleto?.codigoBarras ?? "");
+  const [chavePix, setChavePix] = useState(charge?.boleto?.chavePix ?? "");
 
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -66,7 +67,7 @@ export default function ChargeForm({
     setError(null);
     setLoading(true);
 
-    const boleto = linkUrl || pdfUrl || codigoBarras ? { linkUrl, pdfUrl, codigoBarras } : undefined;
+    const boleto = linkUrl || pdfUrl || codigoBarras || chavePix ? { linkUrl, pdfUrl, codigoBarras, chavePix } : undefined;
     const payload = {
       studentId,
       categoria,
@@ -188,6 +189,10 @@ export default function ChargeForm({
         <label className="mt-3 block text-sm font-medium text-ink/70">
           Código de barras (opcional)
           <input value={codigoBarras} onChange={(e) => setCodigoBarras(e.target.value)} className={inputClass} />
+        </label>
+        <label className="mt-3 block text-sm font-medium text-ink/70">
+          Chave PIX (opcional)
+          <input value={chavePix} onChange={(e) => setChavePix(e.target.value)} placeholder="CPF, e-mail, telefone ou chave aleatória" className={inputClass} />
         </label>
       </div>
 
