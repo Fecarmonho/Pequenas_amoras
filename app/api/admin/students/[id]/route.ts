@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin-session";
 import { updateStudent, deleteStudent, getStudentById } from "@/lib/students-db";
 import { getGuardianById, getGuardianByEmail, createGuardian, updateGuardian, addStudentToGuardian } from "@/lib/guardians-db";
+import { createCharge } from "@/lib/charges-db";
 import { adminAuth } from "@/lib/firebase-admin";
 import { logAudit } from "@/lib/audit-db";
 
@@ -56,6 +57,21 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     await updateStudent(params.id, studentData);
+
+    if (mensalidadeInicial?.valor && mensalidadeInicial.vencimento) {
+      await createCharge({
+        studentId: params.id,
+        categoria: "mensalidade",
+        tipo: "mensalidade",
+        competencia: mensalidadeInicial.vencimento.slice(0, 7),
+        descricao: "Mensalidade",
+        valor: mensalidadeInicial.valor,
+        vencimento: mensalidadeInicial.vencimento,
+        status: "pendente",
+        createdAt: new Date().toISOString(),
+      });
+    }
+
     await logAudit({ actorEmail: session.email ?? "admin", acao: "editar", entidade: "student", entidadeId: params.id });
     return NextResponse.json({ ok: true });
   } catch (err: any) {

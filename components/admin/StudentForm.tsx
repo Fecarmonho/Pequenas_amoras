@@ -105,7 +105,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
         ? { nome: responsavelNome, telefone: responsavelTelefone, email: responsavelEmail, senhaProvisoria: senhaProvisoria || undefined }
         : undefined,
       mensalidadeInicial:
-        !isEdit && valorMensalidade && vencimentoMensalidade
+        valorMensalidade && vencimentoMensalidade
           ? { valor: Number(valorMensalidade), vencimento: vencimentoMensalidade }
           : undefined,
     };
@@ -170,7 +170,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`shrink-0 rounded-t-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+            className={`shrink-0 rounded-t-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
               tab === t.id ? "border-b-2 border-amora-700 text-amora-700" : "text-ink/40 hover:text-ink/70"
             }`}
           >
@@ -278,28 +278,21 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
 
         {tab === "mensalidade" && (
           <div className="flex flex-col gap-4">
-            {isEdit ? (
-              <p className="rounded-xl border border-dashed border-amora-900/15 p-4 text-sm text-ink/50">
-                O ciclo de mensalidades desse estudante é gerenciado em{" "}
-                <strong>Financeiro → Mensalidades</strong>, incluindo cobranças extras.
-              </p>
-            ) : (
-              <>
-                <p className="text-sm text-ink/50">
-                  Lança a primeira mensalidade já na criação do estudante (opcional — dá pra fazer isso depois também).
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <label className="block text-sm font-medium text-ink/70">
-                    Valor (R$)
-                    <input type="number" step="0.01" min="0" value={valorMensalidade} onChange={(e) => setValorMensalidade(e.target.value)} className={inputClass} />
-                  </label>
-                  <label className="block text-sm font-medium text-ink/70">
-                    Vencimento
-                    <input type="date" value={vencimentoMensalidade} onChange={(e) => setVencimentoMensalidade(e.target.value)} className={inputClass} />
-                  </label>
-                </div>
-              </>
-            )}
+            <p className="text-sm text-ink/50">
+              {isEdit
+                ? "Preencha valor e vencimento pra lançar uma nova mensalidade — ela aparece direto em Financeiro → Mensalidades."
+                : "Lança a primeira mensalidade já na criação do estudante (opcional — dá pra fazer isso depois também)."}
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <label className="block text-sm font-medium text-ink/70">
+                Valor (R$)
+                <input type="number" step="0.01" min="0" value={valorMensalidade} onChange={(e) => setValorMensalidade(e.target.value)} className={inputClass} />
+              </label>
+              <label className="block text-sm font-medium text-ink/70">
+                Vencimento
+                <input type="date" value={vencimentoMensalidade} onChange={(e) => setVencimentoMensalidade(e.target.value)} className={inputClass} />
+              </label>
+            </div>
           </div>
         )}
 
