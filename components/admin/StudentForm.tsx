@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Guardian, PessoaAutorizada, Student, MODALIDADES } from "@/lib/types";
 import { processarFoto } from "@/lib/image-compress";
-import { HiOutlineTrash, HiOutlinePlus } from "react-icons/hi2";
+import { emailAcessoBase } from "@/lib/slug";
+import { onlyDigits } from "@/lib/cpf";
+import { HiOutlineTrash, HiOutlinePlus, HiOutlineClipboardDocument } from "react-icons/hi2";
+import { FaWhatsapp } from "react-icons/fa6";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-amora-900/15 bg-white px-4 py-2.5 text-sm text-ink focus:border-amora-600 focus:outline-none";
@@ -18,6 +21,57 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
+type Credenciais = { email: string; link: string; telefone: string };
+
+function linkWhatsapp(telefone: string, email: string, link: string): string {
+  const digits = onlyDigits(telefone);
+  const numero = digits.length <= 11 ? `55${digits}` : digits;
+  const texto = `Olá! Seu acesso à Área da Família da Pequenas Amoras está pronto 💜\n\nLogin: ${email}\n\nClique no link abaixo pra criar sua senha:\n${link}`;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+}
+
+function TelaCredenciais({ credenciais, onVoltar }: { credenciais: Credenciais; onVoltar: () => void }) {
+  const [copiado, setCopiado] = useState(false);
+
+  async function copiarLink() {
+    await navigator.clipboard.writeText(credenciais.link);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }
+
+  return (
+    <div className="mx-auto max-w-md rounded-2xl border border-amora-900/8 bg-white p-6 text-center shadow-card">
+      <p className="text-3xl">🎉</p>
+      <h1 className="mt-3 font-display text-xl font-bold text-amora-950">Acesso pronto!</h1>
+      <p className="mt-2 text-sm text-ink/60">
+        O responsável usa esse login e cria a própria senha ao abrir o link — manda pra ele por WhatsApp:
+      </p>
+      <div className="mt-4 rounded-xl bg-amora-50 p-4 text-left text-sm">
+        <p><strong>Login:</strong> {credenciais.email}</p>
+      </div>
+      <div className="mt-4 flex flex-col gap-2">
+        <a
+          href={linkWhatsapp(credenciais.telefone, credenciais.email, credenciais.link)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold text-white"
+        >
+          <FaWhatsapp className="h-4 w-4" /> Enviar por WhatsApp
+        </a>
+        <button
+          type="button"
+          onClick={copiarLink}
+          className="flex items-center justify-center gap-2 rounded-full border border-amora-900/15 px-5 py-2.5 text-sm font-semibold text-amora-700"
+        >
+          <HiOutlineClipboardDocument className="h-4 w-4" /> {copiado ? "Link copiado!" : "Copiar link"}
+        </button>
+      </div>
+      <button onClick={onVoltar} className="mt-5 text-sm font-semibold text-ink/40 hover:text-ink/70">
+        Voltar
+      </button>
+    </div>
+  );
+}
 
 export default function StudentForm({ student, guardian }: { student?: Student; guardian?: Guardian }) {
   const router = useRouter();
@@ -38,8 +92,8 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   // Acesso da família (responsável)
   const [responsavelNome, setResponsavelNome] = useState(guardian?.nome ?? "");
   const [responsavelTelefone, setResponsavelTelefone] = useState(guardian?.telefone ?? "");
-  const [responsavelEmail, setResponsavelEmail] = useState(guardian?.email ?? "");
-  const [senhaProvisoria, setSenhaProvisoria] = useState("");
+  const [acessoError, setAcessoError] = useState<string | null>(null);
+  const [acessoLoading, setAcessoLoading] = useState<"reenviar" | "excluir" | null>(null);
 
   // Mensalidade inicial (só faz sentido na criação — depois disso, o ciclo
   // mensal é gerenciado em Financeiro > Mensalidades)
@@ -51,7 +105,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [credenciaisCriadas, setCredenciaisCriadas] = useState<{ email: string; senha: string } | null>(null);
+  const [credenciais, setCredenciais] = useState<Credenciais | null>(null);
 
   async function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -82,13 +136,6 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
-    if (!isEdit && !guardian && responsavelEmail && senhaProvisoria.length < 6) {
-      setError("A senha provisória precisa ter pelo menos 6 caracteres.");
-      setTab("acesso");
-      return;
-    }
-
     setLoading(true);
 
     const payload = {
@@ -101,9 +148,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       status,
       pessoasAutorizadas,
       observacoes,
-      responsavel: responsavelEmail
-        ? { nome: responsavelNome, telefone: responsavelTelefone, email: responsavelEmail, senhaProvisoria: senhaProvisoria || undefined }
-        : undefined,
+      responsavel: responsavelNome ? { nome: responsavelNome, telefone: responsavelTelefone } : undefined,
       mensalidadeInicial:
         valorMensalidade && vencimentoMensalidade
           ? { valor: Number(valorMensalidade), vencimento: vencimentoMensalidade }
@@ -126,8 +171,8 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Não foi possível salvar.");
 
-      if (!isEdit && data.credenciais) {
-        setCredenciaisCriadas(data.credenciais);
+      if (data.credenciais) {
+        setCredenciais(data.credenciais);
         return;
       }
 
@@ -140,25 +185,53 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
     }
   }
 
-  if (credenciaisCriadas) {
+  async function handleReenviarLink() {
+    if (!student) return;
+    setAcessoError(null);
+    setAcessoLoading("reenviar");
+    try {
+      const response = await fetch(`/api/admin/students/${student.id}/acesso`, { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível gerar o link.");
+      setCredenciais({ email: data.email, link: data.link, telefone: data.telefone });
+    } catch (err) {
+      setAcessoError(err instanceof Error ? err.message : "Erro ao gerar o link.");
+    } finally {
+      setAcessoLoading(null);
+    }
+  }
+
+  async function handleExcluirAcesso() {
+    if (!student) return;
+    if (!confirm("Excluir o acesso desse responsável? Ele perde o login atual e você precisa cadastrar um novo.")) return;
+    setAcessoError(null);
+    setAcessoLoading("excluir");
+    try {
+      const response = await fetch(`/api/admin/students/${student.id}/acesso`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Não foi possível excluir o acesso.");
+      setResponsavelNome("");
+      setResponsavelTelefone("");
+      router.refresh();
+    } catch (err) {
+      setAcessoError(err instanceof Error ? err.message : "Erro ao excluir o acesso.");
+    } finally {
+      setAcessoLoading(null);
+    }
+  }
+
+  if (credenciais) {
     return (
-      <div className="mx-auto max-w-md rounded-2xl border border-amora-900/8 bg-white p-6 text-center shadow-card">
-        <p className="text-3xl">🎉</p>
-        <h1 className="mt-3 font-display text-xl font-bold text-amora-950">Estudante cadastrado!</h1>
-        <p className="mt-2 text-sm text-ink/60">
-          Repasse esses dados de acesso pra família (por WhatsApp, por exemplo):
-        </p>
-        <div className="mt-4 rounded-xl bg-amora-50 p-4 text-left text-sm">
-          <p><strong>Login:</strong> {credenciaisCriadas.email}</p>
-          <p><strong>Senha provisória:</strong> {credenciaisCriadas.senha}</p>
-        </div>
-        <button
-          onClick={() => router.push("/admin/estudantes")}
-          className="btn-primary mt-6 rounded-full px-5 py-2.5 text-sm font-bold text-white"
-        >
-          Voltar para estudantes
-        </button>
-      </div>
+      <TelaCredenciais
+        credenciais={credenciais}
+        onVoltar={() => {
+          setCredenciais(null);
+          if (!isEdit) {
+            router.push("/admin/estudantes");
+          } else {
+            router.refresh();
+          }
+        }}
+      />
     );
   }
 
@@ -249,29 +322,45 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
               <input value={responsavelNome} onChange={(e) => setResponsavelNome(e.target.value)} className={inputClass} />
             </label>
             <label className="block text-sm font-medium text-ink/70">
-              Telefone
+              Telefone (WhatsApp)
               <input value={responsavelTelefone} onChange={(e) => setResponsavelTelefone(e.target.value)} className={inputClass} placeholder="(15) 90000-0000" />
             </label>
-            <label className="block text-sm font-medium text-ink/70">
-              E-mail de acesso
-              <input
-                type="email"
-                value={responsavelEmail}
-                onChange={(e) => setResponsavelEmail(e.target.value)}
-                disabled={isEdit && Boolean(guardian)}
-                className={`${inputClass} disabled:bg-ink/5 disabled:text-ink/40`}
-              />
-              {isEdit && guardian && (
-                <span className="mt-1 block text-xs text-ink/40">
-                  Login já criado — pra trocar o e-mail, fale com o suporte técnico.
-                </span>
-              )}
-            </label>
-            {(!isEdit || !guardian) && responsavelEmail && (
-              <label className="block text-sm font-medium text-ink/70">
-                Senha provisória (repassar pra família depois)
-                <input value={senhaProvisoria} onChange={(e) => setSenhaProvisoria(e.target.value)} className={inputClass} />
-              </label>
+
+            {guardian ? (
+              <div className="rounded-xl border border-amora-900/10 p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-amora-700">Login já criado</p>
+                <p className="mt-1 text-sm text-ink/70">{guardian.email}</p>
+                <p className="mt-1 text-xs text-ink/40">
+                  A senha é definida pelo próprio responsável — você não vê nem define a senha dele.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleReenviarLink}
+                    disabled={acessoLoading !== null}
+                    className="rounded-full border border-amora-900/15 px-4 py-2 text-xs font-semibold text-amora-700 disabled:opacity-60"
+                  >
+                    {acessoLoading === "reenviar" ? "Gerando..." : "Reenviar link de acesso"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExcluirAcesso}
+                    disabled={acessoLoading !== null}
+                    className="rounded-full border border-rosa-200 px-4 py-2 text-xs font-semibold text-rosa-600 disabled:opacity-60"
+                  >
+                    {acessoLoading === "excluir" ? "Excluindo..." : "Excluir acesso e recriar"}
+                  </button>
+                </div>
+                {acessoError && <p className="mt-2 text-xs font-medium text-rosa-600">{acessoError}</p>}
+              </div>
+            ) : (
+              responsavelNome &&
+              nome && (
+                <p className="rounded-xl bg-amora-50 p-3 text-xs text-amora-700">
+                  Login que será criado: <strong>{emailAcessoBase(nome)}</strong>
+                  {" "}(gerado a partir do nome do aluno — se já existir, um número é adicionado)
+                </p>
+              )
             )}
           </div>
         )}

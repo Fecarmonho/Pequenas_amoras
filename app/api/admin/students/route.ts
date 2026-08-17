@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin-session";
 import { createStudent, updateStudent } from "@/lib/students-db";
-import { createGuardian, getGuardianByEmail, addStudentToGuardian } from "@/lib/guardians-db";
+import { criarAcessoFamilia } from "@/lib/guardian-access";
 import { createCharge } from "@/lib/charges-db";
-import { adminAuth } from "@/lib/firebase-admin";
 import { logAudit } from "@/lib/audit-db";
 import { Student } from "@/lib/types";
 
@@ -17,7 +16,7 @@ interface Payload {
   status?: Student["status"];
   pessoasAutorizadas: Student["pessoasAutorizadas"];
   observacoes?: string;
-  responsavel?: { nome: string; telefone: string; email: string; senhaProvisoria?: string };
+  responsavel?: { nome: string; telefone: string };
   mensalidadeInicial?: { valor: number; vencimento: string };
 }
 
@@ -31,8 +30,7 @@ export async function POST(request: NextRequest) {
   }
 
   const now = new Date().toISOString();
-  const guardianIds: string[] = [];
-  let credenciais: { email: string; senha: string } | undefined;
+  let credenciais: { email: string; link: string; telefone: string } | undefined;
 
   try {
     // Cria o estudante primeiro (precisamos do id pra vincular o responsável).
@@ -51,47 +49,18 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     });
 
-    // Responsável: se já existe um cadastro com esse e-mail, só vincula;
-    // senão cria a conta de acesso (Firebase Auth + doc `guardians`) —
-    // a família não se autocadastra.
-    if (body.responsavel?.email) {
-      const { nome: responsavelNome, telefone, email, senhaProvisoria } = body.responsavel;
-      const existente = await getGuardianByEmail(email);
-
-      if (existente) {
-        guardianIds.push(existente.id);
-        await addStudentToGuardian(existente.id, created.id);
-      } else {
-        if (!senhaProvisoria || senhaProvisoria.length < 6) {
-          return NextResponse.json(
-            { error: "Informe uma senha provisória com pelo menos 6 caracteres pro responsável." },
-            { status: 400 }
-          );
-        }
-        let uid: string;
-        try {
-          const userRecord = await adminAuth.createUser({ email, password: senhaProvisoria, displayName: responsavelNome });
-          uid = userRecord.uid;
-        } catch (err: any) {
-          if (err?.code !== "auth/email-already-exists") throw err;
-          uid = (await adminAuth.getUserByEmail(email)).uid;
-        }
-
-        const guardian = await createGuardian({
-          uid,
-          nome: responsavelNome,
-          cpf: "",
-          telefone,
-          email: email.toLowerCase(),
-          parentesco: "",
-          studentIds: [created.id],
-          createdAt: now,
-        });
-        guardianIds.push(guardian.id);
-        credenciais = { email, senha: senhaProvisoria };
-      }
-
-      await updateStudent(created.id, { guardianIds });
+    // Acesso da família: gera e-mail a partir do nome do aluno e um link
+    // de primeiro acesso (o responsável define a própria senha por lá).
+    if (body.responsavel?.nome) {
+      const { guardianId, email, link } = await criarAcessoFamilia({
+        nomeAluno: body.nome,
+        nomeResponsavel: body.responsavel.nome,
+        telefone: body.responsavel.telefone,
+        studentId: created.id,
+        origin: request.nextUrl.origin,
+      });
+      await updateStudent(created.id, { guardianIds: [guardianId] });
+      credenciais = { email, link, telefone: body.responsavel.telefone };
     }
 
     if (body.mensalidadeInicial?.valor && body.mensalidadeInicial.vencimento) {

@@ -15,6 +15,18 @@ projeto — não precisa de cartão cadastrado.
 1. Menu lateral: **Build → Authentication**
 2. Aba **Sign-in method** → **Email/senha** → ativar → salvar
 
+## 2.1 Autorizar o domínio do site (importante!)
+
+O link de "criar senha" que a família recebe só funciona se o domínio do
+site estiver autorizado:
+
+1. Ainda em **Authentication → Settings** → aba **Authorized domains**
+2. **Add domain** → cola o domínio do site publicado (ex:
+   `pequenas-amoras.vercel.app`)
+
+Sem isso, ao cadastrar o acesso de um responsável aparece o erro "Domain
+not allowlisted by project".
+
 ## 3. Criar o banco de dados (Firestore)
 
 1. Menu lateral: **Build → Firestore Database**

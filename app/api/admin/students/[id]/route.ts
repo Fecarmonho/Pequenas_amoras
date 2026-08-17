@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin-session";
 import { updateStudent, deleteStudent, getStudentById } from "@/lib/students-db";
-import { getGuardianById, getGuardianByEmail, createGuardian, updateGuardian, addStudentToGuardian } from "@/lib/guardians-db";
+import { getGuardianById, updateGuardian } from "@/lib/guardians-db";
+import { criarAcessoFamilia } from "@/lib/guardian-access";
 import { createCharge } from "@/lib/charges-db";
-import { adminAuth } from "@/lib/firebase-admin";
 import { logAudit } from "@/lib/audit-db";
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
@@ -16,43 +16,25 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const student = await getStudentById(params.id);
   if (!student) return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
 
+  let credenciais: { email: string; link: string; telefone: string } | undefined;
+
   try {
-    if (responsavel?.email) {
+    if (responsavel?.nome) {
       const guardianAtual = student.guardianIds[0] ? await getGuardianById(student.guardianIds[0]) : null;
 
       if (guardianAtual) {
         // E-mail de acesso já criado não muda por aqui — só nome/telefone.
         await updateGuardian(guardianAtual.id, { nome: responsavel.nome, telefone: responsavel.telefone });
       } else {
-        const existente = await getGuardianByEmail(responsavel.email);
-        if (existente) {
-          await addStudentToGuardian(existente.id, params.id);
-          studentData.guardianIds = [existente.id];
-        } else if (responsavel.senhaProvisoria && responsavel.senhaProvisoria.length >= 6) {
-          let uid: string;
-          try {
-            const userRecord = await adminAuth.createUser({
-              email: responsavel.email,
-              password: responsavel.senhaProvisoria,
-              displayName: responsavel.nome,
-            });
-            uid = userRecord.uid;
-          } catch (err: any) {
-            if (err?.code !== "auth/email-already-exists") throw err;
-            uid = (await adminAuth.getUserByEmail(responsavel.email)).uid;
-          }
-          const novoGuardian = await createGuardian({
-            uid,
-            nome: responsavel.nome,
-            cpf: "",
-            telefone: responsavel.telefone,
-            email: responsavel.email.toLowerCase(),
-            parentesco: "",
-            studentIds: [params.id],
-            createdAt: new Date().toISOString(),
-          });
-          studentData.guardianIds = [novoGuardian.id];
-        }
+        const { guardianId, email, link } = await criarAcessoFamilia({
+          nomeAluno: student.nome,
+          nomeResponsavel: responsavel.nome,
+          telefone: responsavel.telefone,
+          studentId: params.id,
+          origin: request.nextUrl.origin,
+        });
+        studentData.guardianIds = [guardianId];
+        credenciais = { email, link, telefone: responsavel.telefone };
       }
     }
 
@@ -73,7 +55,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     await logAudit({ actorEmail: session.email ?? "admin", acao: "editar", entidade: "student", entidadeId: params.id });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, credenciais });
   } catch (err: any) {
     const message = err instanceof Error ? err.message : "Não foi possível salvar.";
     return NextResponse.json({ error: message }, { status: 400 });

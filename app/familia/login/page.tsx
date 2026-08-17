@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase-client";
+import { SITE_CONFIG } from "@/lib/site-config";
+import { buildWhatsappLink } from "@/lib/whatsapp";
 import FloatingStars from "@/components/decor/FloatingStars";
+import { FaWhatsapp } from "react-icons/fa6";
 
 export default function FamilyLoginPage() {
   const router = useRouter();
   const [identificador, setIdentificador] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
 
   async function resolverEmail(): Promise<string> {
     const response = await fetch("/api/familia/resolver-login", {
@@ -29,7 +30,6 @@ export default function FamilyLoginPage() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setInfo(null);
     setLoading(true);
     try {
       const email = await resolverEmail();
@@ -52,24 +52,10 @@ export default function FamilyLoginPage() {
     }
   }
 
-  async function handleForgotPassword() {
-    setError(null);
-    setInfo(null);
-    if (!identificador) {
-      setError("Digite seu CPF ou e-mail acima antes de pedir a redefinição.");
-      return;
-    }
-    setResetLoading(true);
-    try {
-      const email = await resolverEmail();
-      await sendPasswordResetEmail(auth, email);
-    } catch {
-      // Mensagem genérica de propósito — não revela se o cadastro existe.
-    } finally {
-      setResetLoading(false);
-      setInfo("Se encontrarmos esse cadastro, enviamos um link de redefinição de senha por e-mail.");
-    }
-  }
+  const linkAjuda = buildWhatsappLink(
+    SITE_CONFIG.whatsapp,
+    "Olá! Esqueci minha senha da Área da Família da Pequenas Amoras, podem me ajudar? 💜"
+  );
 
   return (
     <main className="hero-space hero-space-gradient starfield relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
@@ -112,7 +98,6 @@ export default function FamilyLoginPage() {
         </label>
 
         {error && <p className="mt-4 text-sm font-medium text-rosa-300">{error}</p>}
-        {info && <p className="mt-4 text-sm font-medium text-dourado">{info}</p>}
 
         <button
           type="submit"
@@ -122,14 +107,14 @@ export default function FamilyLoginPage() {
           {loading ? "Entrando..." : "Entrar"}
         </button>
 
-        <button
-          type="button"
-          onClick={handleForgotPassword}
-          disabled={resetLoading}
-          className="mt-4 w-full text-center text-sm font-semibold text-white/60 underline-offset-2 hover:text-white hover:underline disabled:opacity-60"
+        <a
+          href={linkAjuda}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 flex w-full items-center justify-center gap-1.5 text-center text-sm font-semibold text-white/60 underline-offset-2 hover:text-white hover:underline"
         >
-          {resetLoading ? "Enviando..." : "Esqueci minha senha"}
-        </button>
+          <FaWhatsapp className="h-4 w-4" /> Esqueci minha senha — falar com a escola
+        </a>
       </form>
     </main>
   );
