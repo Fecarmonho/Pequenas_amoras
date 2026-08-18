@@ -52,28 +52,23 @@ function ParcelaRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: 
       tabIndex={ocultarAcoes ? undefined : 0}
       onClick={ocultarAcoes ? undefined : onEdit}
       onKeyDown={ocultarAcoes ? undefined : (e) => e.key === "Enter" && onEdit()}
-      className={`border-b border-dashed border-amora-900/15 py-4 last:border-0 ${ocultarAcoes ? "" : "cursor-pointer"}`}
+      className={`flex items-center justify-between gap-3 border-b border-dashed border-amora-900/15 py-4 last:border-0 ${ocultarAcoes ? "" : "cursor-pointer"}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 text-left">
-          <p className="text-xs font-semibold uppercase leading-normal tracking-wide text-amora-700">
-            {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
-          </p>
-          <p className="mt-1 text-xs leading-normal text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
-        </div>
-        {!ocultarAcoes && (
-          <div onClick={(e) => e.stopPropagation()}>
-            <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />
-          </div>
-        )}
+      <div className="min-w-0 flex-1 text-left">
+        <p className="text-sm font-semibold uppercase leading-normal tracking-wide text-amora-700">
+          {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
+        </p>
+        <p className="mt-1 text-xs leading-normal text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
       </div>
-      <div className="mt-2 flex items-end justify-between">
-        <div>
-          <p className="text-[11px] text-ink/40">Valor da parcela</p>
-          <p className="font-mono text-xl font-bold text-amora-950">{formatBRL(charge.valor)}</p>
-        </div>
+      <div className="shrink-0 text-right">
+        <p className="font-mono text-lg font-bold text-amora-950">{formatBRL(charge.valor)}</p>
         {!ocultarAcoes && <span className="text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>}
       </div>
+      {!ocultarAcoes && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />
+        </div>
+      )}
     </div>
   );
 }
@@ -120,6 +115,7 @@ export default function StudentChargesHub({
   const mensalidades = charges.filter((c) => c.categoria === "mensalidade").sort((a, b) => b.vencimento.localeCompare(a.vencimento));
   const extras = charges.filter((c) => c.categoria === "extra").sort((a, b) => b.vencimento.localeCompare(a.vencimento));
   const editando = !["lista", "nova-parcela", "nova-extra"].includes(modo) ? charges.find((c) => c.id === modo) : undefined;
+  const total = charges.reduce((soma, c) => soma + c.valor, 0);
 
   function handleSaved() {
     setModo("lista");
@@ -178,6 +174,13 @@ export default function StudentChargesHub({
                   <ExtraRow key={c.id} charge={c} onEdit={() => setModo(c.id)} ocultarAcoes={ocultarAcoes} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {charges.length > 0 && (
+            <div className="mt-3 flex items-center justify-between border-t border-amora-900/10 pt-3">
+              <p className="text-sm font-bold uppercase leading-normal tracking-wide text-amora-950">Total</p>
+              <p className="font-mono text-lg font-bold leading-normal text-amora-950">{formatBRL(total)}</p>
             </div>
           )}
 

@@ -2,17 +2,22 @@ import Link from "next/link";
 import { getAllStudents } from "@/lib/students-db";
 import { getAllCharges } from "@/lib/charges-db";
 import { getAllAvisos } from "@/lib/avisos-db";
+import { getGuardianById } from "@/lib/guardians-db";
+import { getConfiguracoes } from "@/lib/config-db";
 import { statusEfetivo } from "@/lib/charge-status";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, formatCompetencia } from "@/lib/format";
+import { buildWhatsappLink, numeroWhatsapp } from "@/lib/whatsapp";
 import StatCard from "@/components/admin/StatCard";
+import { FaWhatsapp } from "react-icons/fa6";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [students, charges, avisos] = await Promise.all([
+  const [students, charges, avisos, config] = await Promise.all([
     getAllStudents(),
     getAllCharges(),
     getAllAvisos(),
+    getConfiguracoes(),
   ]);
 
   const pagas = charges.filter((c) => statusEfetivo(c) === "pago");
@@ -25,6 +30,20 @@ export default async function AdminDashboardPage() {
   const estudantesRecentes = [...students]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 5);
+
+  // Parcelas e cobranças extras que vencem hoje — pra poder disparar a
+  // cobrança pelo WhatsApp direto daqui, usando o telefone cadastrado no
+  // responsável do aluno.
+  const hojeStr = new Date().toISOString().slice(0, 10);
+  const vencendoHoje = await Promise.all(
+    charges
+      .filter((c) => c.status === "pendente" && c.vencimento === hojeStr)
+      .map(async (charge) => {
+        const student = students.find((s) => s.id === charge.studentId);
+        const guardian = student?.guardianIds[0] ? await getGuardianById(student.guardianIds[0]) : null;
+        return { charge, student, guardian };
+      })
+  );
 
   return (
     <div>
@@ -39,6 +58,42 @@ export default async function AdminDashboardPage() {
         <StatCard label="Em aberto" value={formatBRL(emAberto)} cor="rosa" />
         <StatCard label="Diárias lançadas" value={diarias} cor="roxo" />
         <StatCard label="Avisos ativos" value={avisos.filter((a) => a.ativo).length} cor="rosa" />
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-amora-900/8 bg-white p-5 shadow-card">
+        <h2 className="font-display text-lg font-bold text-amora-950">Vencendo hoje</h2>
+        {vencendoHoje.length === 0 ? (
+          <p className="mt-2 text-sm text-ink/40">Nenhuma cobrança vence hoje.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-amora-900/5">
+            {vencendoHoje.map(({ charge, student, guardian }) => {
+              const descricao = charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao;
+              const mensagem = `Olá! Passando pra lembrar que a cobrança "${descricao}" de ${student?.nome ?? "aluno"} (${formatBRL(charge.valor)}) vence hoje.${
+                config.chavePix ? ` Chave PIX pra pagamento: ${config.chavePix}.` : ""
+              } Qualquer dúvida, estamos à disposição 💜 — Pequenas Amoras`;
+              return (
+                <li key={charge.id} className="flex items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-ink">{student?.nome ?? "Aluno removido"}</p>
+                    <p className="truncate text-xs text-ink/40">{descricao} — {formatBRL(charge.valor)}</p>
+                  </div>
+                  {guardian?.telefone ? (
+                    <a
+                      href={buildWhatsappLink(numeroWhatsapp(guardian.telefone), mensagem)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-primary flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold text-white"
+                    >
+                      <FaWhatsapp className="h-3.5 w-3.5" /> Disparar cobrança
+                    </a>
+                  ) : (
+                    <span className="shrink-0 text-xs text-ink/30">Sem telefone cadastrado</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
 
       <div className="mt-8 rounded-2xl border border-amora-900/8 bg-white p-5 shadow-card">
