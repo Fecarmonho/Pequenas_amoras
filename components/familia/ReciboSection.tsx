@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Charge, Student } from "@/lib/types";
 import { baixarReciboPdf, enviarReciboPdf } from "@/lib/receipt-pdf";
+import { formatBRL } from "@/lib/format";
 import ChargeCard from "@/components/familia/ChargeCard";
 import { HiOutlineArrowDownTray, HiOutlineShare } from "react-icons/hi2";
 
@@ -19,6 +20,7 @@ export default function ReciboSection({
 }) {
   const reciboRef = useRef<HTMLDivElement>(null);
   const [exportando, setExportando] = useState<"baixar" | "enviar" | null>(null);
+  const total = [...mensalidades, ...extras].reduce((soma, c) => soma + c.valor, 0);
 
   async function handleExportar(acao: "baixar" | "enviar") {
     if (!reciboRef.current) return;
@@ -58,6 +60,13 @@ export default function ReciboSection({
             ))
           )}
         </div>
+
+        {(mensalidades.length > 0 || extras.length > 0) && (
+          <div className="mx-4 mb-4 flex items-center justify-between border-t border-amora-900/10 pt-3">
+            <p className="text-sm font-bold uppercase leading-normal tracking-wide text-amora-950">Total</p>
+            <p className="font-mono text-lg font-bold leading-normal text-amora-950">{formatBRL(total)}</p>
+          </div>
+        )}
 
         {chavePix && (
           <p className="mx-4 mb-4 rounded-lg bg-folha/10 px-3 py-2 text-center text-xs font-semibold leading-normal text-folha">
