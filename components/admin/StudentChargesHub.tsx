@@ -8,7 +8,7 @@ import { formatBRL, formatDate, formatCompetencia } from "@/lib/format";
 import { baixarReciboPdf, enviarReciboPdf } from "@/lib/receipt-pdf";
 import ChargeForm from "@/components/admin/ChargeForm";
 import DeleteButton from "@/components/admin/DeleteButton";
-import { HiOutlinePlus, HiOutlineArrowDownTray, HiOutlineShare, HiOutlineClipboardDocument, HiOutlineCheckCircle } from "react-icons/hi2";
+import { HiOutlinePlus, HiOutlineArrowDownTray, HiOutlineShare, HiOutlineClipboardDocument } from "react-icons/hi2";
 
 function PixLine({ chavePix, ocultarAcoes }: { chavePix: string; ocultarAcoes: boolean }) {
   const [copiado, setCopiado] = useState(false);
@@ -39,41 +39,13 @@ function PixLine({ chavePix, ocultarAcoes }: { chavePix: string; ocultarAcoes: b
   );
 }
 
-function MarcarPagoButton({ onClick, loading }: { onClick: () => void; loading: boolean }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={loading}
-      title="Marcar como recebido"
-      aria-label="Marcar como recebido"
-      className="rounded-lg p-2 text-ink/40 transition-colors hover:bg-folha/15 hover:text-folha disabled:opacity-50"
-    >
-      <HiOutlineCheckCircle className="h-4 w-4" />
-    </button>
-  );
-}
-
-function ParcelaRow({
-  charge,
-  onEdit,
-  onMarcarPago,
-  marcando,
-  ocultarAcoes,
-}: {
-  charge: Charge;
-  onEdit: () => void;
-  onMarcarPago: () => void;
-  marcando: boolean;
-  ocultarAcoes: boolean;
-}) {
+function ParcelaRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: () => void; ocultarAcoes: boolean }) {
   const status = statusEfetivo(charge);
 
   // O card inteiro é clicável (não só o texto do mês) pra abrir a edição —
-  // é uma div com role de botão, não um <button> de verdade, porque
-  // DeleteButton/MarcarPagoButton lá dentro já são <button> e HTML não
-  // aceita botão dentro de botão. Os cliques neles usam stopPropagation
-  // pra não abrir a edição junto.
+  // é uma div com role de botão, não um <button> de verdade, porque o
+  // DeleteButton lá dentro já é um <button> e HTML não aceita botão dentro
+  // de botão. O clique no excluir usa stopPropagation pra não abrir a edição junto.
   return (
     <div
       role={ocultarAcoes ? undefined : "button"}
@@ -93,8 +65,7 @@ function ParcelaRow({
         {!ocultarAcoes && <span className="text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>}
       </div>
       {!ocultarAcoes && (
-        <div className="flex shrink-0 items-center" onClick={(e) => e.stopPropagation()}>
-          {status !== "pago" && <MarcarPagoButton onClick={onMarcarPago} loading={marcando} />}
+        <div onClick={(e) => e.stopPropagation()}>
           <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />
         </div>
       )}
@@ -102,19 +73,7 @@ function ParcelaRow({
   );
 }
 
-function ExtraRow({
-  charge,
-  onEdit,
-  onMarcarPago,
-  marcando,
-  ocultarAcoes,
-}: {
-  charge: Charge;
-  onEdit: () => void;
-  onMarcarPago: () => void;
-  marcando: boolean;
-  ocultarAcoes: boolean;
-}) {
+function ExtraRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: () => void; ocultarAcoes: boolean }) {
   const status = statusEfetivo(charge);
   return (
     <div
@@ -131,8 +90,7 @@ function ExtraRow({
       <span className="shrink-0 text-sm font-semibold text-ink">{formatBRL(charge.valor)}</span>
       {!ocultarAcoes && <span className="shrink-0 text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>}
       {!ocultarAcoes && (
-        <div className="flex shrink-0 items-center" onClick={(e) => e.stopPropagation()}>
-          {status !== "pago" && <MarcarPagoButton onClick={onMarcarPago} loading={marcando} />}
+        <div onClick={(e) => e.stopPropagation()}>
           <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />
         </div>
       )}
@@ -153,7 +111,6 @@ export default function StudentChargesHub({
   const reciboRef = useRef<HTMLDivElement>(null);
   const [modo, setModo] = useState<"lista" | "nova-extra" | string>("lista");
   const [exportando, setExportando] = useState<"baixar" | "enviar" | null>(null);
-  const [marcandoPago, setMarcandoPago] = useState<string | null>(null);
 
   const mensalidades = charges.filter((c) => c.categoria === "mensalidade").sort((a, b) => b.vencimento.localeCompare(a.vencimento));
   const extras = charges.filter((c) => c.categoria === "extra").sort((a, b) => b.vencimento.localeCompare(a.vencimento));
@@ -163,24 +120,6 @@ export default function StudentChargesHub({
   function handleSaved() {
     setModo("lista");
     router.refresh();
-  }
-
-  /** Marca como recebido sem precisar abrir o formulário de edição — o
-   * servidor já registra a data do pagamento (ver PATCH /api/admin/charges/[id]).
-   * Um `router.refresh()` recarrega os dados: se essa era a mensalidade do
-   * mês atual, a renovação automática garante que a próxima já aparece. */
-  async function handleMarcarPago(id: string) {
-    setMarcandoPago(id);
-    try {
-      await fetch(`/api/admin/charges/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "pago" }),
-      });
-      router.refresh();
-    } finally {
-      setMarcandoPago(null);
-    }
   }
 
   async function handleExportar(acao: "baixar" | "enviar") {
@@ -227,14 +166,7 @@ export default function StudentChargesHub({
             <p className="py-6 text-center text-sm text-ink/40">Nenhuma parcela lançada ainda.</p>
           ) : (
             mensalidades.map((c) => (
-              <ParcelaRow
-                key={c.id}
-                charge={c}
-                onEdit={() => setModo(c.id)}
-                onMarcarPago={() => handleMarcarPago(c.id)}
-                marcando={marcandoPago === c.id}
-                ocultarAcoes={ocultarAcoes}
-              />
+              <ParcelaRow key={c.id} charge={c} onEdit={() => setModo(c.id)} ocultarAcoes={ocultarAcoes} />
             ))
           )}
 
@@ -243,14 +175,7 @@ export default function StudentChargesHub({
               <p className="text-xs font-bold uppercase leading-normal tracking-wide text-amora-700">Cobranças extras</p>
               <div className="mt-1">
                 {extras.map((c) => (
-                  <ExtraRow
-                    key={c.id}
-                    charge={c}
-                    onEdit={() => setModo(c.id)}
-                    onMarcarPago={() => handleMarcarPago(c.id)}
-                    marcando={marcandoPago === c.id}
-                    ocultarAcoes={ocultarAcoes}
-                  />
+                  <ExtraRow key={c.id} charge={c} onEdit={() => setModo(c.id)} ocultarAcoes={ocultarAcoes} />
                 ))}
               </div>
             </div>
