@@ -9,6 +9,7 @@ import { statusEfetivo } from "@/lib/charge-status";
 import { formatBRL, formatCompetencia } from "@/lib/format";
 import { buildWhatsappLink, numeroWhatsapp } from "@/lib/whatsapp";
 import StatCard from "@/components/admin/StatCard";
+import MarcarRecebidoButton from "@/components/admin/MarcarRecebidoButton";
 import { FaWhatsapp } from "react-icons/fa6";
 
 export const dynamic = "force-dynamic";
@@ -80,18 +81,21 @@ export default async function AdminDashboardPage() {
                     <p className="truncate text-sm font-medium text-ink">{student?.nome ?? "Aluno removido"}</p>
                     <p className="truncate text-xs text-ink/40">{descricao} — {formatBRL(charge.valor)}</p>
                   </div>
-                  {guardian?.telefone ? (
-                    <a
-                      href={buildWhatsappLink(numeroWhatsapp(guardian.telefone), mensagem)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-primary flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold text-white"
-                    >
-                      <FaWhatsapp className="h-3.5 w-3.5" /> Disparar cobrança
-                    </a>
-                  ) : (
-                    <span className="shrink-0 text-xs text-ink/30">Sem telefone cadastrado</span>
-                  )}
+                  <div className="flex shrink-0 items-center gap-2">
+                    <MarcarRecebidoButton chargeId={charge.id} />
+                    {guardian?.telefone ? (
+                      <a
+                        href={buildWhatsappLink(numeroWhatsapp(guardian.telefone), mensagem)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-primary flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold text-white"
+                      >
+                        <FaWhatsapp className="h-3.5 w-3.5" /> Disparar cobrança
+                      </a>
+                    ) : (
+                      <span className="text-xs text-ink/30">Sem telefone cadastrado</span>
+                    )}
+                  </div>
                 </li>
               );
             })}
