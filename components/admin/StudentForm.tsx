@@ -13,9 +13,9 @@ const inputClass =
   "mt-1 w-full rounded-xl border border-amora-900/15 bg-white px-4 py-2.5 text-sm text-ink focus:border-amora-600 focus:outline-none";
 
 const TABS = [
-  { id: "dados", label: "Dados do estudante" },
+  { id: "dados", label: "Dados" },
   { id: "responsaveis", label: "Responsáveis" },
-  { id: "acesso", label: "Acesso da família" },
+  { id: "acesso", label: "Acesso" },
   { id: "mensalidade", label: "Mensalidade" },
   { id: "autorizados", label: "Autorizados" },
   { id: "observacoes", label: "Observações" },
@@ -275,7 +275,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`shrink-0 rounded-t-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+            className={`shrink-0 rounded-t-lg px-2.5 py-2.5 text-sm font-semibold transition-colors ${
               tab === t.id ? "border-b-2 border-amora-700 text-amora-700" : "text-ink/40 hover:text-ink/70"
             }`}
           >
