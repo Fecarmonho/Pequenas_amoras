@@ -14,17 +14,20 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/admin")) {
-    const isLoginPage = pathname === "/admin/login";
+    // /definir-senha é o link de "criar senha" — quem chega ali nunca
+    // esteve logado ainda, então não pode exigir sessão como as outras
+    // páginas do painel.
+    const isPublica = pathname === "/admin/login" || pathname === "/admin/definir-senha";
     const hasSession = request.cookies.has("__admin_session");
-    if (!isLoginPage && !hasSession) {
+    if (!isPublica && !hasSession) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   }
 
   if (pathname.startsWith("/familia")) {
-    const isLoginPage = pathname === "/familia/login";
+    const isPublica = pathname === "/familia/login" || pathname === "/familia/definir-senha";
     const hasSession = request.cookies.has("__family_session");
-    if (!isLoginPage && !hasSession) {
+    if (!isPublica && !hasSession) {
       return NextResponse.redirect(new URL("/familia/login", request.url));
     }
   }

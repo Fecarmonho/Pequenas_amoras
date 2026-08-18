@@ -19,6 +19,15 @@ export async function countAdmins(): Promise<number> {
   return snapshot.data().count;
 }
 
+export async function getAllAdmins(): Promise<Admin[]> {
+  const snapshot = await adminDb.collection(COLLECTION).orderBy("nome").get();
+  return snapshot.docs.map((doc) => doc.data() as Admin);
+}
+
 export async function createAdminRecord(admin: Admin): Promise<void> {
   await adminDb.collection(COLLECTION).doc(admin.uid).set(admin);
+}
+
+export async function deleteAdminRecord(uid: string): Promise<void> {
+  await adminDb.collection(COLLECTION).doc(uid).delete();
 }

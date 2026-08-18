@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/admin/banners", label: "Carrossel", icon: "🎠" },
   { href: "/admin/galeria", label: "Galeria", icon: "🖼️" },
   { href: "/admin/configuracoes", label: "Configurações", icon: "⚙️" },
+  { href: "/admin/usuarios", label: "Usuários", icon: "🔑" },
 ] as const;
 
 function isActive(pathname: string, href: string, exact?: boolean) {
