@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Guardian, PessoaAutorizada, Student, MODALIDADES } from "@/lib/types";
 import { processarFoto } from "@/lib/image-compress";
-import { emailAcessoBase, slugify } from "@/lib/slug";
+import { slugify } from "@/lib/slug";
 import { onlyDigits } from "@/lib/cpf";
 import { HiOutlineTrash, HiOutlinePlus, HiOutlineClipboardDocument } from "react-icons/hi2";
 import { FaWhatsapp } from "react-icons/fa6";
@@ -159,9 +159,14 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       pessoasAutorizadas,
       observacoes,
       diaVencimento: diaVencimento ? Number(diaVencimento) : undefined,
-      responsavel: responsavelNome
-        ? { nome: responsavelNome, telefone: responsavelTelefone, usuario: !guardian ? usuario : undefined }
-        : undefined,
+      responsavel:
+        guardian || usuario || responsavelTelefone || responsavelNome
+          ? {
+              nome: responsavelNome || `Responsável de ${nome}`,
+              telefone: responsavelTelefone,
+              usuario: !guardian ? usuario : undefined,
+            }
+          : undefined,
       mensalidadeInicial:
         valorMensalidade && vencimentoMensalidade
           ? { valor: Number(valorMensalidade), vencimento: vencimentoMensalidade }
@@ -328,16 +333,8 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
         {tab === "acesso" && (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-ink/50">
-              Dados do responsável que vai acessar a Área da Família deste estudante.
+              Login que o responsável usa pra acessar a Área da Família deste estudante.
             </p>
-            <label className="block text-sm font-medium text-ink/70">
-              Nome do responsável
-              <input value={responsavelNome} onChange={(e) => setResponsavelNome(e.target.value)} className={inputClass} />
-            </label>
-            <label className="block text-sm font-medium text-ink/70">
-              Telefone (WhatsApp)
-              <input value={responsavelTelefone} onChange={(e) => setResponsavelTelefone(e.target.value)} className={inputClass} placeholder="(15) 90000-0000" />
-            </label>
 
             {guardian ? (
               <div className="rounded-xl border border-amora-900/10 p-4">
@@ -367,9 +364,14 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
                 {acessoError && <p className="mt-2 text-xs font-medium text-rosa-600">{acessoError}</p>}
               </div>
             ) : (
-              responsavelNome && (
+              <>
+                <p className="rounded-xl border border-dashed border-amora-900/15 bg-amora-50 p-3 text-xs text-amora-700">
+                  Nenhum acesso criado ainda. Preencha o e-mail e o telefone abaixo e clique em{" "}
+                  <strong>Salvar alterações</strong> pra criar.
+                </p>
+
                 <label className="block text-sm font-medium text-ink/70">
-                  Usuário de acesso
+                  E-mail de acesso
                   <div className="mt-1 flex items-center overflow-hidden rounded-xl border border-amora-900/15 bg-white focus-within:border-amora-600">
                     <input
                       value={usuario}
@@ -381,11 +383,19 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
                     />
                     <span className="shrink-0 pr-3 text-sm text-ink/40">@amoras.com</span>
                   </div>
-                  <span className="mt-1 block text-xs text-ink/40">
-                    Sugerido a partir do nome do aluno — pode trocar. Login: {emailAcessoBase(usuario || nome)}
-                  </span>
+                  <span className="mt-1 block text-xs text-ink/40">Sugerido a partir do nome do aluno — pode trocar.</span>
                 </label>
-              )
+
+                <label className="block text-sm font-medium text-ink/70">
+                  Telefone (WhatsApp)
+                  <input value={responsavelTelefone} onChange={(e) => setResponsavelTelefone(e.target.value)} className={inputClass} placeholder="(15) 90000-0000" />
+                </label>
+
+                <label className="block text-sm font-medium text-ink/70">
+                  Nome do responsável (opcional)
+                  <input value={responsavelNome} onChange={(e) => setResponsavelNome(e.target.value)} className={inputClass} />
+                </label>
+              </>
             )}
           </div>
         )}
