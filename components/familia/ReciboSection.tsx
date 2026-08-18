@@ -10,10 +10,12 @@ export default function ReciboSection({
   student,
   mensalidades,
   extras,
+  chavePix,
 }: {
   student: Student;
   mensalidades: Charge[];
   extras: Charge[];
+  chavePix?: string;
 }) {
   const reciboRef = useRef<HTMLDivElement>(null);
   const [exportando, setExportando] = useState<"baixar" | "enviar" | null>(null);
@@ -51,9 +53,17 @@ export default function ReciboSection({
           {mensalidades.length === 0 && extras.length === 0 ? (
             <p className="py-6 text-center text-sm text-ink/40">Nenhuma cobrança lançada ainda.</p>
           ) : (
-            [...mensalidades, ...extras].map((c) => <ChargeCard key={c.id} charge={c} />)
+            [...mensalidades, ...extras].map((c) => (
+              <ChargeCard key={c.id} charge={c} ocultarStatus={exportando !== null} />
+            ))
           )}
         </div>
+
+        {chavePix && (
+          <p className="mx-4 mb-4 rounded-lg bg-folha/10 px-3 py-2 text-center text-xs font-semibold leading-normal text-folha">
+            Chave PIX para pagamento: {chavePix}
+          </p>
+        )}
       </div>
 
       <div className="flex gap-3">

@@ -12,9 +12,9 @@ const CATEGORIA_LABEL: Record<Charge["categoria"], string> = {
 /** Cartão em formato de "recibo" — perfuração no meio (as duas bolinhas
  * cortando a borda) separa os dados da cobrança do valor/status, como um
  * canhoto de boleto de verdade. */
-export default function ChargeCard({ charge }: { charge: Charge }) {
+export default function ChargeCard({ charge, ocultarStatus }: { charge: Charge; ocultarStatus?: boolean }) {
   const status = statusEfetivo(charge);
-  const boletoUrl = charge.boleto?.pdfUrl || charge.boleto?.linkUrl;
+  const boletoUrl = charge.boleto?.pdfUrl;
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-white shadow-card">
@@ -22,7 +22,9 @@ export default function ChargeCard({ charge }: { charge: Charge }) {
         <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-amora-700">
           <BerryIcon className="h-3.5 w-3.5" /> {CATEGORIA_LABEL[charge.categoria]}
         </span>
-        <span className="text-[11px] font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
+        {!ocultarStatus && (
+          <span className="text-[11px] font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
+        )}
       </div>
 
       <div className="px-5 py-4">

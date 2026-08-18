@@ -41,68 +41,77 @@ function PixLine({ chavePix, ocultarAcoes }: { chavePix: string; ocultarAcoes: b
 
 function ParcelaRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: () => void; ocultarAcoes: boolean }) {
   const status = statusEfetivo(charge);
-  const conteudo = (
-    <>
-      <p className="text-xs font-semibold uppercase leading-normal tracking-wide text-amora-700">
-        {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
-      </p>
-      <p className="mt-1 text-xs leading-normal text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
-    </>
-  );
 
+  // O card inteiro é clicável (não só o texto do mês) pra abrir a edição —
+  // é uma div com role de botão, não um <button> de verdade, porque o
+  // DeleteButton lá dentro já é um <button> e HTML não aceita botão dentro
+  // de botão. O clique no excluir usa stopPropagation pra não abrir a edição junto.
   return (
-    <div className="border-b border-dashed border-amora-900/15 py-4 last:border-0">
+    <div
+      role={ocultarAcoes ? undefined : "button"}
+      tabIndex={ocultarAcoes ? undefined : 0}
+      onClick={ocultarAcoes ? undefined : onEdit}
+      onKeyDown={ocultarAcoes ? undefined : (e) => e.key === "Enter" && onEdit()}
+      className={`border-b border-dashed border-amora-900/15 py-4 last:border-0 ${ocultarAcoes ? "" : "cursor-pointer"}`}
+    >
       <div className="flex items-start justify-between gap-3">
-        {/* html2canvas não renderiza <button> de forma confiável (texto
-            sai cortado) — na exportação do PDF usamos uma div comum. */}
-        {ocultarAcoes ? (
-          <div className="min-w-0 flex-1 text-left">{conteudo}</div>
-        ) : (
-          <button type="button" onClick={onEdit} className="min-w-0 flex-1 text-left">
-            {conteudo}
-          </button>
+        <div className="min-w-0 flex-1 text-left">
+          <p className="text-xs font-semibold uppercase leading-normal tracking-wide text-amora-700">
+            {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
+          </p>
+          <p className="mt-1 text-xs leading-normal text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
+        </div>
+        {!ocultarAcoes && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />
+          </div>
         )}
-        {!ocultarAcoes && <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />}
       </div>
       <div className="mt-2 flex items-end justify-between">
         <div>
           <p className="text-[11px] text-ink/40">Valor da parcela</p>
           <p className="font-mono text-xl font-bold text-amora-950">{formatBRL(charge.valor)}</p>
         </div>
-        <span className="text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
+        {!ocultarAcoes && <span className="text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>}
       </div>
-      {charge.boleto?.chavePix && <PixLine chavePix={charge.boleto.chavePix} ocultarAcoes={ocultarAcoes} />}
     </div>
   );
 }
 
 function ExtraRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: () => void; ocultarAcoes: boolean }) {
   const status = statusEfetivo(charge);
-  const conteudo = (
-    <>
-      <p className="text-sm font-medium leading-normal text-ink hover:text-amora-700">{charge.descricao}</p>
-      <p className="text-xs leading-normal text-ink/40">Vence {formatDate(charge.vencimento)}</p>
-    </>
-  );
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-dashed border-amora-900/10 py-3.5 last:border-0">
-      {/* html2canvas não renderiza <button> de forma confiável (texto sai
-          cortado) — na exportação do PDF usamos uma div comum. */}
-      {ocultarAcoes ? (
-        <div className="min-w-0 flex-1 text-left">{conteudo}</div>
-      ) : (
-        <button type="button" onClick={onEdit} className="min-w-0 flex-1 text-left">
-          {conteudo}
-        </button>
-      )}
+    <div
+      role={ocultarAcoes ? undefined : "button"}
+      tabIndex={ocultarAcoes ? undefined : 0}
+      onClick={ocultarAcoes ? undefined : onEdit}
+      onKeyDown={ocultarAcoes ? undefined : (e) => e.key === "Enter" && onEdit()}
+      className={`flex items-center justify-between gap-3 border-b border-dashed border-amora-900/10 py-3.5 last:border-0 ${ocultarAcoes ? "" : "cursor-pointer"}`}
+    >
+      <div className="min-w-0 flex-1 text-left">
+        <p className="text-sm font-medium leading-normal text-ink hover:text-amora-700">{charge.descricao}</p>
+        <p className="text-xs leading-normal text-ink/40">Vence {formatDate(charge.vencimento)}</p>
+      </div>
       <span className="shrink-0 text-sm font-semibold text-ink">{formatBRL(charge.valor)}</span>
-      <span className="shrink-0 text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
-      {!ocultarAcoes && <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />}
+      {!ocultarAcoes && <span className="shrink-0 text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>}
+      {!ocultarAcoes && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />
+        </div>
+      )}
     </div>
   );
 }
 
-export default function StudentChargesHub({ student, charges }: { student: Student; charges: Charge[] }) {
+export default function StudentChargesHub({
+  student,
+  charges,
+  chavePix,
+}: {
+  student: Student;
+  charges: Charge[];
+  chavePix?: string;
+}) {
   const router = useRouter();
   const reciboRef = useRef<HTMLDivElement>(null);
   const [modo, setModo] = useState<"lista" | "nova-parcela" | "nova-extra" | string>("lista");
@@ -171,6 +180,8 @@ export default function StudentChargesHub({ student, charges }: { student: Stude
               </div>
             </div>
           )}
+
+          {chavePix && <PixLine chavePix={chavePix} ocultarAcoes={ocultarAcoes} />}
         </div>
 
         {!ocultarAcoes && (

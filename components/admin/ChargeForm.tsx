@@ -59,10 +59,7 @@ export default function ChargeForm({
   );
   const [status, setStatus] = useState(charge?.status ?? "pendente");
   const [observacao, setObservacao] = useState(charge?.observacao ?? "");
-  const [linkUrl, setLinkUrl] = useState(charge?.boleto?.linkUrl ?? "");
   const [pdfUrl, setPdfUrl] = useState(charge?.boleto?.pdfUrl ?? "");
-  const [codigoBarras, setCodigoBarras] = useState(charge?.boleto?.codigoBarras ?? "");
-  const [chavePix, setChavePix] = useState(charge?.boleto?.chavePix ?? "");
 
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -91,7 +88,7 @@ export default function ChargeForm({
     setError(null);
     setLoading(true);
 
-    const boleto = linkUrl || pdfUrl || codigoBarras || chavePix ? { linkUrl, pdfUrl, codigoBarras, chavePix } : undefined;
+    const boleto = pdfUrl ? { pdfUrl } : undefined;
     const payload = {
       studentId,
       categoria,
@@ -201,22 +198,10 @@ export default function ChargeForm({
       <div className="rounded-xl border border-amora-900/10 p-4">
         <p className="text-xs font-bold uppercase tracking-wide text-amora-700">Boleto (opcional)</p>
         <label className="mt-3 block text-sm font-medium text-ink/70">
-          Link do boleto
-          <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." className={inputClass} />
-        </label>
-        <label className="mt-3 block text-sm font-medium text-ink/70">
-          Ou anexar PDF
+          Anexar PDF
           <input type="file" accept="application/pdf" onChange={handleFileChange} className="mt-1 w-full text-sm text-ink/60" />
           {uploading && <span className="text-xs text-amora-700">Enviando...</span>}
           {pdfUrl && !uploading && <p className="mt-1 truncate text-xs text-folha">✓ PDF anexado</p>}
-        </label>
-        <label className="mt-3 block text-sm font-medium text-ink/70">
-          Código de barras (opcional)
-          <input value={codigoBarras} onChange={(e) => setCodigoBarras(e.target.value)} className={inputClass} />
-        </label>
-        <label className="mt-3 block text-sm font-medium text-ink/70">
-          Chave PIX (opcional)
-          <input value={chavePix} onChange={(e) => setChavePix(e.target.value)} placeholder="CPF, e-mail, telefone ou chave aleatória" className={inputClass} />
         </label>
       </div>
 

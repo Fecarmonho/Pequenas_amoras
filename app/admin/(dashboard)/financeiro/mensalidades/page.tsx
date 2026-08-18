@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { getAllStudents } from "@/lib/students-db";
 import { getAllCharges } from "@/lib/charges-db";
+import { getConfiguracoes } from "@/lib/config-db";
 import { statusEfetivo, STATUS_LABEL, STATUS_EMOJI } from "@/lib/charge-status";
 import { formatBRL, formatDate } from "@/lib/format";
 import { HiChevronRight } from "react-icons/hi2";
 import { Charge } from "@/lib/types";
+import ChavePixConfig from "@/components/admin/ChavePixConfig";
 
 export const dynamic = "force-dynamic";
 
 export default async function MensalidadesPage() {
-  const [students, charges] = await Promise.all([getAllStudents(), getAllCharges()]);
+  const [students, charges, config] = await Promise.all([getAllStudents(), getAllCharges(), getConfiguracoes()]);
 
   const mensalidadePorAluno = new Map<string, Charge>();
   for (const c of charges) {
@@ -24,6 +26,8 @@ export default async function MensalidadesPage() {
       <p className="mb-6 text-sm text-ink/50">
         Clique num estudante pra ver o histórico completo, editar a mensalidade e lançar cobranças extras.
       </p>
+
+      <ChavePixConfig chavePixInicial={config.chavePix} />
 
       <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
         <table className="w-full text-left text-sm">

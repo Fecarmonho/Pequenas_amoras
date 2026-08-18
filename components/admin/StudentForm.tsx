@@ -84,7 +84,6 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   const [foto, setFoto] = useState(student?.foto ?? "");
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const [dataNascimento, setDataNascimento] = useState(student?.dataNascimento ?? "");
-  const [cpf, setCpf] = useState(student?.cpf ?? "");
   const [dataMatricula, setDataMatricula] = useState(student?.dataMatricula ?? new Date().toISOString().slice(0, 10));
   const [modalidade, setModalidade] = useState<string>(student?.modalidade ?? MODALIDADES[0]);
   const [status, setStatus] = useState(student?.status ?? "ativo");
@@ -151,7 +150,6 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       nome,
       foto: foto || undefined,
       dataNascimento,
-      cpf,
       dataMatricula,
       modalidade,
       status,
@@ -292,16 +290,10 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
               Nome completo
               <input required value={nome} onChange={(e) => setNome(e.target.value)} className={inputClass} />
             </label>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block text-sm font-medium text-ink/70">
-                Data de nascimento
-                <input required type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} className={inputClass} />
-              </label>
-              <label className="block text-sm font-medium text-ink/70">
-                CPF (opcional)
-                <input value={cpf} onChange={(e) => setCpf(e.target.value)} className={inputClass} />
-              </label>
-            </div>
+            <label className="block text-sm font-medium text-ink/70">
+              Data de nascimento
+              <input required type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} className={inputClass} />
+            </label>
             <div className="grid grid-cols-2 gap-4">
               <label className="block text-sm font-medium text-ink/70">
                 Data de matrícula

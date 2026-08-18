@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getAllStudents } from "@/lib/students-db";
 import { getAllCharges } from "@/lib/charges-db";
-import { getAllGuardians } from "@/lib/guardians-db";
 import { getAllAvisos } from "@/lib/avisos-db";
 import { statusEfetivo } from "@/lib/charge-status";
 import { formatBRL } from "@/lib/format";
@@ -10,10 +9,9 @@ import StatCard from "@/components/admin/StatCard";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [students, charges, guardians, avisos] = await Promise.all([
+  const [students, charges, avisos] = await Promise.all([
     getAllStudents(),
     getAllCharges(),
-    getAllGuardians(),
     getAllAvisos(),
   ]);
 
@@ -34,7 +32,6 @@ export default async function AdminDashboardPage() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard label="Estudantes ativos" value={students.filter((s) => s.status === "ativo").length} cor="roxo" />
-        <StatCard label="Responsáveis" value={guardians.length} cor="roxo" />
         <StatCard label="Mensalidades pagas" value={pagas.length} cor="verde" />
         <StatCard label="Pendentes" value={pendentes.length} hint="🟡" cor="dourado" />
         <StatCard label="Vencidas" value={vencidas.length} hint="🔴" cor="vermelho" />

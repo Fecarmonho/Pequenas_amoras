@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getStudentById } from "@/lib/students-db";
 import { getChargesByStudent } from "@/lib/charges-db";
+import { getConfiguracoes } from "@/lib/config-db";
 import StudentChargesHub from "@/components/admin/StudentChargesHub";
 import { HiOutlineArrowLeft } from "react-icons/hi2";
 
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function EstudanteFinanceiroPage({ params }: { params: { id: string } }) {
   const student = await getStudentById(params.id);
   if (!student) notFound();
-  const charges = await getChargesByStudent(student.id);
+  const [charges, config] = await Promise.all([getChargesByStudent(student.id), getConfiguracoes()]);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -23,7 +24,7 @@ export default async function EstudanteFinanceiroPage({ params }: { params: { id
 
       <h1 className="mt-4 mb-6 font-display text-2xl font-bold text-amora-950">{student.nome}</h1>
 
-      <StudentChargesHub student={student} charges={charges} />
+      <StudentChargesHub student={student} charges={charges} chavePix={config.chavePix} />
     </div>
   );
 }

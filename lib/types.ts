@@ -53,10 +53,7 @@ export interface Guardian {
 }
 
 export interface Boleto {
-  linkUrl?: string;
   pdfUrl?: string;
-  codigoBarras?: string;
-  chavePix?: string;
 }
 
 export interface Charge {
@@ -124,6 +121,8 @@ export interface Configuracoes {
   endereco: string;
   horarioAtendimento: string;
   textoInstitucional: string;
+  /** Chave PIX única usada em todos os recibos — não é mais por cobrança. */
+  chavePix?: string;
   // Seção "Fundadora" da home — só aparece no site se nome e história
   // estiverem preenchidos (ver components/FounderSection.tsx).
   fundadoraNome?: string;
