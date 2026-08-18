@@ -15,6 +15,7 @@ export default function FamilyLoginPage() {
   const [senha, setSenha] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [primeiroAcessoLoading, setPrimeiroAcessoLoading] = useState(false);
 
   async function resolverEmail(): Promise<string> {
     const response = await fetch("/api/familia/resolver-login", {
@@ -46,15 +47,40 @@ export default function FamilyLoginPage() {
       router.push("/familia");
       router.refresh();
     } catch (err) {
-      setError("CPF/e-mail ou senha incorretos.");
+      setError("Usuário ou senha incorretos. Se é seu primeiro acesso, use o botão abaixo pra criar sua senha.");
     } finally {
       setLoading(false);
     }
   }
 
+  /** Primeiro acesso (nunca criou senha) e "esqueci a senha" são a mesma
+   * coisa aqui: gera um link novo de "criar senha" e já leva a pessoa
+   * pra lá, sem precisar de e-mail de verdade nem passar pelo admin. */
+  async function handlePrimeiroAcesso() {
+    setError(null);
+    if (!identificador) {
+      setError("Digite seu usuário acima primeiro.");
+      return;
+    }
+    setPrimeiroAcessoLoading(true);
+    try {
+      const response = await fetch("/api/familia/link-primeiro-acesso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identificador }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Não encontramos um cadastro com esse usuário.");
+      window.location.href = data.link;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao gerar o link.");
+      setPrimeiroAcessoLoading(false);
+    }
+  }
+
   const linkAjuda = buildWhatsappLink(
     SITE_CONFIG.whatsapp,
-    "Olá! Esqueci minha senha da Área da Família da Pequenas Amoras, podem me ajudar? 💜"
+    "Olá! Não lembro meu usuário da Área da Família da Pequenas Amoras, podem me ajudar? 💜"
   );
 
   return (
@@ -110,13 +136,22 @@ export default function FamilyLoginPage() {
           {loading ? "Entrando..." : "Entrar"}
         </button>
 
+        <button
+          type="button"
+          onClick={handlePrimeiroAcesso}
+          disabled={primeiroAcessoLoading}
+          className="btn-outline mt-3 w-full rounded-full px-6 py-3 text-center font-display font-bold disabled:opacity-60"
+        >
+          {primeiroAcessoLoading ? "Gerando..." : "Primeiro acesso / Esqueci a senha"}
+        </button>
+
         <a
           href={linkAjuda}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 flex w-full items-center justify-center gap-1.5 text-center text-sm font-semibold text-white/60 underline-offset-2 hover:text-white hover:underline"
+          className="mt-4 flex w-full items-center justify-center gap-1.5 text-center text-xs font-semibold text-white/50 underline-offset-2 hover:text-white hover:underline"
         >
-          <FaWhatsapp className="h-4 w-4" /> Esqueci minha senha — falar com a escola
+          <FaWhatsapp className="h-3.5 w-3.5" /> Não sei meu usuário — falar com a escola
         </a>
       </form>
     </main>
