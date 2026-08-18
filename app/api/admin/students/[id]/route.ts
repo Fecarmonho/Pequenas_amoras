@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin-session";
 import { updateStudent, deleteStudent, getStudentById } from "@/lib/students-db";
-import { getGuardianById, updateGuardian } from "@/lib/guardians-db";
+import { getGuardianById, updateGuardian, deleteGuardian } from "@/lib/guardians-db";
 import { criarAcessoFamilia } from "@/lib/guardian-access";
-import { createCharge } from "@/lib/charges-db";
+import { createCharge, getChargesByStudent, deleteCharge } from "@/lib/charges-db";
+import { adminAuth } from "@/lib/firebase-admin";
 import { logAudit } from "@/lib/audit-db";
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
@@ -63,9 +64,33 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
+/** Apagar um estudante também apaga tudo que só existe por causa dele —
+ * senão o login da família e as cobranças ficam órfãos no banco, e um
+ * cadastro novo com o mesmo nome esbarra num e-mail "já usado" que na
+ * prática não pertence a mais ninguém. */
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
+  const student = await getStudentById(params.id);
+  if (!student) return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
+
+  const guardianId = student.guardianIds[0];
+  if (guardianId) {
+    const guardian = await getGuardianById(guardianId);
+    if (guardian?.uid) {
+      try {
+        await adminAuth.deleteUser(guardian.uid);
+      } catch {
+        // se o usuário já não existir no Auth por algum motivo, seguimos
+        // em frente e limpamos o resto mesmo assim
+      }
+    }
+    await deleteGuardian(guardianId);
+  }
+
+  const charges = await getChargesByStudent(params.id);
+  await Promise.all(charges.map((c) => deleteCharge(c.id)));
 
   await deleteStudent(params.id);
   await logAudit({ actorEmail: session.email ?? "admin", acao: "excluir", entidade: "student", entidadeId: params.id });
