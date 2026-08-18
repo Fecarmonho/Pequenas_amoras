@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getAllStudents } from "@/lib/students-db";
 import { getAllGuardians } from "@/lib/guardians-db";
 import DeleteButton from "@/components/admin/DeleteButton";
-import { HiOutlinePlus } from "react-icons/hi2";
+import { HiOutlinePlus, HiOutlineEye, HiOutlinePencil } from "react-icons/hi2";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +37,7 @@ export default async function EstudantesPage() {
             {students.map((s) => (
               <tr key={s.id}>
                 <td className="px-4 py-3">
-                  <Link href={`/admin/estudantes/${s.id}`} className="font-medium text-amora-700 hover:underline">
+                  <Link href={`/admin/estudantes/${s.id}/perfil`} className="font-medium text-amora-700 hover:underline">
                     {s.nome}
                   </Link>
                 </td>
@@ -48,8 +48,24 @@ export default async function EstudantesPage() {
                 <td className="px-4 py-3">
                   <span className={`badge-soft ${s.status === "inativo" ? "bg-ink/5 text-ink/40" : ""}`}>{s.status}</span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <DeleteButton url={`/api/admin/students/${s.id}`} confirmMessage={`Excluir o estudante ${s.nome}?`} />
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-1">
+                    <Link
+                      href={`/admin/estudantes/${s.id}/perfil`}
+                      aria-label="Ver perfil"
+                      className="rounded-lg p-2 text-ink/40 transition-colors hover:bg-amora-100 hover:text-amora-700"
+                    >
+                      <HiOutlineEye className="h-4 w-4" />
+                    </Link>
+                    <Link
+                      href={`/admin/estudantes/${s.id}`}
+                      aria-label="Editar"
+                      className="rounded-lg p-2 text-ink/40 transition-colors hover:bg-amora-100 hover:text-amora-700"
+                    >
+                      <HiOutlinePencil className="h-4 w-4" />
+                    </Link>
+                    <DeleteButton url={`/api/admin/students/${s.id}`} confirmMessage={`Excluir o estudante ${s.nome}?`} />
+                  </div>
                 </td>
               </tr>
             ))}

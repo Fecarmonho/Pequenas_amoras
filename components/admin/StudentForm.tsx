@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Guardian, PessoaAutorizada, Student, MODALIDADES } from "@/lib/types";
 import { processarFoto } from "@/lib/image-compress";
-import { emailAcessoBase } from "@/lib/slug";
+import { emailAcessoBase, slugify } from "@/lib/slug";
 import { onlyDigits } from "@/lib/cpf";
 import { HiOutlineTrash, HiOutlinePlus, HiOutlineClipboardDocument } from "react-icons/hi2";
 import { FaWhatsapp } from "react-icons/fa6";
@@ -92,11 +92,15 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   // Acesso da família (responsável)
   const [responsavelNome, setResponsavelNome] = useState(guardian?.nome ?? "");
   const [responsavelTelefone, setResponsavelTelefone] = useState(guardian?.telefone ?? "");
+  const [usuario, setUsuario] = useState("");
+  const [usuarioEditadoManualmente, setUsuarioEditadoManualmente] = useState(false);
   const [acessoError, setAcessoError] = useState<string | null>(null);
   const [acessoLoading, setAcessoLoading] = useState<"reenviar" | "excluir" | null>(null);
 
-  // Mensalidade inicial (só faz sentido na criação — depois disso, o ciclo
-  // mensal é gerenciado em Financeiro > Mensalidades)
+  // Mensalidade (dia fixo pra sugerir vencimento; valor/data inicial só
+  // faz sentido na criação — depois disso, o ciclo mensal é gerenciado em
+  // Financeiro > Mensalidades)
+  const [diaVencimento, setDiaVencimento] = useState(student?.diaVencimento?.toString() ?? "");
   const [valorMensalidade, setValorMensalidade] = useState("");
   const [vencimentoMensalidade, setVencimentoMensalidade] = useState("");
 
@@ -106,6 +110,12 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [credenciais, setCredenciais] = useState<Credenciais | null>(null);
+
+  // Sugere o usuário a partir do nome do aluno — o admin pode editar à
+  // vontade (para de seguir o nome assim que ele mexer no campo).
+  useEffect(() => {
+    if (!usuarioEditadoManualmente && !guardian) setUsuario(slugify(nome));
+  }, [nome, usuarioEditadoManualmente, guardian]);
 
   async function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -148,7 +158,10 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       status,
       pessoasAutorizadas,
       observacoes,
-      responsavel: responsavelNome ? { nome: responsavelNome, telefone: responsavelTelefone } : undefined,
+      diaVencimento: diaVencimento ? Number(diaVencimento) : undefined,
+      responsavel: responsavelNome
+        ? { nome: responsavelNome, telefone: responsavelTelefone, usuario: !guardian ? usuario : undefined }
+        : undefined,
       mensalidadeInicial:
         valorMensalidade && vencimentoMensalidade
           ? { valor: Number(valorMensalidade), vencimento: vencimentoMensalidade }
@@ -354,12 +367,24 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
                 {acessoError && <p className="mt-2 text-xs font-medium text-rosa-600">{acessoError}</p>}
               </div>
             ) : (
-              responsavelNome &&
-              nome && (
-                <p className="rounded-xl bg-amora-50 p-3 text-xs text-amora-700">
-                  Login que será criado: <strong>{emailAcessoBase(nome)}</strong>
-                  {" "}(gerado a partir do nome do aluno — se já existir, um número é adicionado)
-                </p>
+              responsavelNome && (
+                <label className="block text-sm font-medium text-ink/70">
+                  Usuário de acesso
+                  <div className="mt-1 flex items-center overflow-hidden rounded-xl border border-amora-900/15 bg-white focus-within:border-amora-600">
+                    <input
+                      value={usuario}
+                      onChange={(e) => {
+                        setUsuario(e.target.value);
+                        setUsuarioEditadoManualmente(true);
+                      }}
+                      className="min-w-0 flex-1 px-4 py-2.5 text-sm text-ink focus:outline-none"
+                    />
+                    <span className="shrink-0 pr-3 text-sm text-ink/40">@amoras.com</span>
+                  </div>
+                  <span className="mt-1 block text-xs text-ink/40">
+                    Sugerido a partir do nome do aluno — pode trocar. Login: {emailAcessoBase(usuario || nome)}
+                  </span>
+                </label>
               )
             )}
           </div>
@@ -367,20 +392,38 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
 
         {tab === "mensalidade" && (
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-ink/50">
-              {isEdit
-                ? "Preencha valor e vencimento pra lançar uma nova mensalidade — ela aparece direto em Financeiro → Mensalidades."
-                : "Lança a primeira mensalidade já na criação do estudante (opcional — dá pra fazer isso depois também)."}
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block text-sm font-medium text-ink/70">
-                Valor (R$)
-                <input type="number" step="0.01" min="0" value={valorMensalidade} onChange={(e) => setValorMensalidade(e.target.value)} className={inputClass} />
-              </label>
-              <label className="block text-sm font-medium text-ink/70">
-                Vencimento
-                <input type="date" value={vencimentoMensalidade} onChange={(e) => setVencimentoMensalidade(e.target.value)} className={inputClass} />
-              </label>
+            <label className="block text-sm font-medium text-ink/70">
+              Dia de vencimento fixo (opcional)
+              <input
+                type="number"
+                min="1"
+                max="31"
+                value={diaVencimento}
+                onChange={(e) => setDiaVencimento(e.target.value)}
+                placeholder="Ex: 18"
+                className={inputClass}
+              />
+              <span className="mt-1 block text-xs text-ink/40">
+                Todo mês a mensalidade vence nesse dia — usado só pra sugerir a data ao lançar uma nova parcela.
+              </span>
+            </label>
+
+            <div className="border-t border-amora-900/10 pt-4">
+              <p className="text-sm text-ink/50">
+                {isEdit
+                  ? "Preencha valor e vencimento pra lançar uma nova mensalidade — ela aparece direto em Financeiro → Mensalidades."
+                  : "Lança a primeira mensalidade já na criação do estudante (opcional — dá pra fazer isso depois também)."}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-4">
+                <label className="block text-sm font-medium text-ink/70">
+                  Valor (R$)
+                  <input type="number" step="0.01" min="0" value={valorMensalidade} onChange={(e) => setValorMensalidade(e.target.value)} className={inputClass} />
+                </label>
+                <label className="block text-sm font-medium text-ink/70">
+                  Vencimento
+                  <input type="date" value={vencimentoMensalidade} onChange={(e) => setVencimentoMensalidade(e.target.value)} className={inputClass} />
+                </label>
+              </div>
             </div>
           </div>
         )}

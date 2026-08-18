@@ -27,6 +27,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         await updateGuardian(guardianAtual.id, { nome: responsavel.nome, telefone: responsavel.telefone });
       } else {
         const { guardianId, email, link } = await criarAcessoFamilia({
+          usuario: responsavel.usuario,
           nomeAluno: student.nome,
           nomeResponsavel: responsavel.nome,
           telefone: responsavel.telefone,

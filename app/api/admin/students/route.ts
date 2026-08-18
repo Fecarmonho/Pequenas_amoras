@@ -16,8 +16,9 @@ interface Payload {
   status?: Student["status"];
   pessoasAutorizadas: Student["pessoasAutorizadas"];
   observacoes?: string;
-  responsavel?: { nome: string; telefone: string };
+  responsavel?: { nome: string; telefone: string; usuario?: string };
   mensalidadeInicial?: { valor: number; vencimento: string };
+  diaVencimento?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
       dataMatricula: body.dataMatricula,
       modalidade: body.modalidade,
       observacoes: body.observacoes,
+      diaVencimento: body.diaVencimento,
       guardianIds: [],
       pessoasAutorizadas: body.pessoasAutorizadas ?? [],
       status: body.status ?? "ativo",
@@ -53,6 +55,7 @@ export async function POST(request: NextRequest) {
     // de primeiro acesso (o responsável define a própria senha por lá).
     if (body.responsavel?.nome) {
       const { guardianId, email, link } = await criarAcessoFamilia({
+        usuario: body.responsavel.usuario,
         nomeAluno: body.nome,
         nomeResponsavel: body.responsavel.nome,
         telefone: body.responsavel.telefone,

@@ -214,7 +214,12 @@ export default function StudentChargesHub({ student, charges }: { student: Stude
 
       {(modo === "nova-parcela" || modo === "nova-extra") && (
         <section className="rounded-2xl border border-amora-900/8 bg-white p-5 shadow-card">
-          <ChargeForm categoria={modo === "nova-parcela" ? "mensalidade" : "extra"} students={[student]} onSaved={handleSaved} />
+          <ChargeForm
+            categoria={modo === "nova-parcela" ? "mensalidade" : "extra"}
+            students={[student]}
+            onSaved={handleSaved}
+            diaVencimentoPadrao={student.diaVencimento}
+          />
           <button type="button" onClick={() => setModo("lista")} className="mt-3 text-sm font-semibold text-ink/40 hover:text-ink/70">
             Cancelar
           </button>

@@ -26,6 +26,9 @@ export interface Student {
   dataMatricula: string;
   modalidade: string;
   observacoes?: string;
+  /** Dia do mês (1-31) em que a mensalidade normalmente vence — usado só
+   * pra sugerir a data ao lançar uma nova parcela, não é obrigatório. */
+  diaVencimento?: number;
   /** IDs de `Guardian` que podem ver este estudante — a checagem de posse
    * (nunca confiar em ID vindo da URL) sempre olha esse array. */
   guardianIds: string[];

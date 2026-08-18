@@ -8,12 +8,28 @@ import { Charge, CategoriaCobranca, TipoCobranca, Student, TIPOS_COBRANCA_EXTRA 
 const inputClass =
   "mt-1 w-full rounded-xl border border-amora-900/15 bg-white px-4 py-2.5 text-sm text-ink focus:border-amora-600 focus:outline-none";
 
+/** Próxima ocorrência do dia fixo de vencimento — mês atual se ainda não
+ * passou, senão mês seguinte. Ajusta pro último dia do mês quando o dia
+ * escolhido não existe nele (ex: dia 31 em fevereiro). */
+function proximoVencimento(dia: number): string {
+  const hoje = new Date();
+  let ano = hoje.getFullYear();
+  let mes = hoje.getMonth(); // 0-11
+  if (dia < hoje.getDate()) mes += 1;
+
+  const ultimoDiaDoMes = new Date(ano, mes + 1, 0).getDate();
+  const diaAjustado = Math.min(dia, ultimoDiaDoMes);
+  const data = new Date(ano, mes, diaAjustado);
+  return data.toISOString().slice(0, 10);
+}
+
 export default function ChargeForm({
   categoria,
   students,
   charge,
   backHref,
   onSaved,
+  diaVencimentoPadrao,
 }: {
   categoria: CategoriaCobranca;
   students: Student[];
@@ -23,6 +39,9 @@ export default function ChargeForm({
   /** Quando o form é usado embutido (ex: hub financeiro do aluno), chama
    * isso em vez de navegar. */
   onSaved?: () => void;
+  /** Dia fixo de vencimento do aluno (Student.diaVencimento) — só usado
+   * pra sugerir a data ao lançar uma mensalidade nova. */
+  diaVencimentoPadrao?: number;
 }) {
   const router = useRouter();
   const isEdit = Boolean(charge);
@@ -32,7 +51,12 @@ export default function ChargeForm({
   const [competencia, setCompetencia] = useState(charge?.competencia ?? new Date().toISOString().slice(0, 7));
   const [descricao, setDescricao] = useState(charge?.descricao ?? (categoria === "mensalidade" ? "Mensalidade" : ""));
   const [valor, setValor] = useState(charge?.valor?.toString() ?? "");
-  const [vencimento, setVencimento] = useState(charge?.vencimento ?? new Date().toISOString().slice(0, 10));
+  const [vencimento, setVencimento] = useState(
+    charge?.vencimento ??
+      (categoria === "mensalidade" && diaVencimentoPadrao
+        ? proximoVencimento(diaVencimentoPadrao)
+        : new Date().toISOString().slice(0, 10))
+  );
   const [status, setStatus] = useState(charge?.status ?? "pendente");
   const [observacao, setObservacao] = useState(charge?.observacao ?? "");
   const [linkUrl, setLinkUrl] = useState(charge?.boleto?.linkUrl ?? "");

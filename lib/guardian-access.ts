@@ -4,10 +4,11 @@ import { adminAuth } from "@/lib/firebase-admin";
 import { createGuardian, getGuardianByEmail } from "@/lib/guardians-db";
 import { emailAcessoBase } from "@/lib/slug";
 
-/** Acha um e-mail livre a partir do nome do aluno — "luiza@amoras.com",
- * e se já existir, "luiza2@amoras.com", "luiza3@amoras.com" etc. */
-async function emailDisponivel(nomeAluno: string): Promise<string> {
-  const base = emailAcessoBase(nomeAluno);
+/** Acha um e-mail livre a partir do usuário desejado (escolhido pelo
+ * admin, ou sugerido a partir do nome do aluno) — "luiza@amoras.com", e
+ * se já existir, "luiza2@amoras.com", "luiza3@amoras.com" etc. */
+async function emailDisponivel(usuarioDesejado: string): Promise<string> {
+  const base = emailAcessoBase(usuarioDesejado);
   if (!(await getGuardianByEmail(base))) return base;
 
   const [usuario, dominio] = base.split("@");
@@ -27,13 +28,16 @@ async function emailDisponivel(nomeAluno: string): Promise<string> {
  * do admin ter que criar e repassar uma senha provisória.
  */
 export async function criarAcessoFamilia(params: {
+  /** O admin pode digitar o usuário desejado; sem isso, sugere a partir
+   * do nome do aluno. */
+  usuario?: string;
   nomeAluno: string;
   nomeResponsavel: string;
   telefone: string;
   studentId: string;
   origin: string;
 }): Promise<{ guardianId: string; email: string; link: string }> {
-  const email = await emailDisponivel(params.nomeAluno);
+  const email = await emailDisponivel(params.usuario || params.nomeAluno);
   const senhaAleatoria = randomBytes(24).toString("base64url");
 
   const userRecord = await adminAuth.createUser({

@@ -74,15 +74,18 @@ export default function FamilyLoginPage() {
         <p className="mt-1 text-center text-sm text-white/60">Acompanhe tudo sobre seu filho, num só lugar.</p>
 
         <label className="mt-6 block text-sm font-medium text-white/80">
-          CPF ou e-mail
-          <input
-            required
-            value={identificador}
-            onChange={(e) => setIdentificador(e.target.value)}
-            placeholder="000.000.000-00 ou email@exemplo.com"
-            className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-white/30 focus:border-rosa-300 focus:outline-none"
-            autoComplete="username"
-          />
+          Usuário
+          <div className="mt-1 flex items-center overflow-hidden rounded-xl border border-white/15 bg-white/5 focus-within:border-rosa-300">
+            <input
+              required
+              value={identificador}
+              onChange={(e) => setIdentificador(e.target.value)}
+              placeholder="seunome"
+              className="min-w-0 flex-1 bg-transparent px-4 py-3 text-base text-white placeholder:text-white/30 focus:outline-none"
+              autoComplete="username"
+            />
+            <span className="shrink-0 pr-4 text-sm text-white/40">@amoras.com</span>
+          </div>
         </label>
 
         <label className="mt-4 block text-sm font-medium text-white/80">
