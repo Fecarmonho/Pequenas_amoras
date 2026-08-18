@@ -32,6 +32,11 @@ export default function AvisoCard({ aviso }: { aviso: Aviso }) {
         <p className="font-display text-sm font-bold text-amora-950">{aviso.titulo}</p>
         <p className="mt-1 text-xs text-ink/50">{formatDate(aviso.data)} · {DESTINATARIO_LABEL[aviso.destinatario.tipo]}</p>
         <p className="mt-2 text-sm text-ink/70">{aviso.texto}</p>
+        {aviso.arquivoUrl && (
+          <a href={aviso.arquivoUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs font-semibold text-amora-700 hover:underline">
+            📎 Ver anexo
+          </a>
+        )}
       </div>
       <div className="flex shrink-0 flex-col items-end gap-2">
         <button

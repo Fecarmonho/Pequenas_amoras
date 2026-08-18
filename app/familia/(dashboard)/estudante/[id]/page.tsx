@@ -97,6 +97,11 @@ export default async function StudentPage({ params }: { params: { id: string } }
                 <p className="font-display text-sm font-bold text-amora-950">{a.titulo}</p>
                 <p className="mt-1 text-xs text-ink/50">{formatDate(a.data)}</p>
                 <p className="mt-2 text-sm text-ink/70">{a.texto}</p>
+                {a.arquivoUrl && (
+                  <a href={a.arquivoUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs font-semibold text-amora-700 hover:underline">
+                    📎 Ver anexo
+                  </a>
+                )}
               </div>
             ))
           )}

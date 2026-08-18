@@ -4,6 +4,7 @@ import { getAllCharges } from "@/lib/charges-db";
 import { getAllAvisos } from "@/lib/avisos-db";
 import { getGuardianById } from "@/lib/guardians-db";
 import { getConfiguracoes } from "@/lib/config-db";
+import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
 import { statusEfetivo } from "@/lib/charge-status";
 import { formatBRL, formatCompetencia } from "@/lib/format";
 import { buildWhatsappLink, numeroWhatsapp } from "@/lib/whatsapp";
@@ -13,12 +14,14 @@ import { FaWhatsapp } from "react-icons/fa6";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [students, charges, avisos, config] = await Promise.all([
-    getAllStudents(),
-    getAllCharges(),
-    getAllAvisos(),
-    getConfiguracoes(),
-  ]);
+  const [students, avisos, config] = await Promise.all([getAllStudents(), getAllAvisos(), getConfiguracoes()]);
+
+  // Garante que a mensalidade do mês já exista antes de calcular "vencendo
+  // hoje" — sem isso, uma mensalidade só aparece aqui depois que alguém
+  // abrir a tela de Financeiro > Mensalidades ao menos uma vez no mês.
+  await Promise.all(students.filter((s) => s.status === "ativo").map((s) => garantirMensalidadesAteHoje(s)));
+
+  const charges = await getAllCharges();
 
   const pagas = charges.filter((c) => statusEfetivo(c) === "pago");
   const pendentes = charges.filter((c) => statusEfetivo(c) === "pendente");

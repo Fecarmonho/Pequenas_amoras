@@ -99,6 +99,7 @@ export interface Aviso {
   titulo: string;
   texto: string;
   imagem?: string;
+  arquivoUrl?: string;
   data: string;
   destinatario: {
     tipo: DestinatarioTipo;

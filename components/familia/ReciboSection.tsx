@@ -27,8 +27,12 @@ export default function ReciboSection({
     setExportando(acao);
     try {
       const nomeArquivo = `recibo-${student.nome.replace(/\s+/g, "-").toLowerCase()}.pdf`;
-      if (acao === "baixar") await baixarReciboPdf(reciboRef.current, nomeArquivo);
-      else await enviarReciboPdf(reciboRef.current, nomeArquivo);
+      if (acao === "baixar") {
+        await baixarReciboPdf(reciboRef.current, nomeArquivo);
+      } else {
+        const mensagem = `Recibo — ${student.nome} 💜 Pequenas Amoras`;
+        await enviarReciboPdf(reciboRef.current, nomeArquivo, mensagem);
+      }
     } catch {
       // silencioso — cancelar o compartilhamento não é um erro de verdade
     } finally {

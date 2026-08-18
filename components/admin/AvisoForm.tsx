@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import { DestinatarioTipo, MODALIDADES, Student } from "@/lib/types";
 import { processarFoto } from "@/lib/image-compress";
 
@@ -18,6 +19,8 @@ export default function AvisoForm({ students }: { students: Student[] }) {
   const [modalidade, setModalidade] = useState<string>(MODALIDADES[0]);
   const [imagem, setImagem] = useState("");
   const [processandoImagem, setProcessandoImagem] = useState(false);
+  const [arquivoUrl, setArquivoUrl] = useState("");
+  const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +38,25 @@ export default function AvisoForm({ students }: { students: Student[] }) {
     }
   }
 
+  async function handleArquivoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setEnviandoArquivo(true);
+    setError(null);
+    try {
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/avisos/upload",
+      });
+      setArquivoUrl(blob.url);
+    } catch (err) {
+      setError("Não foi possível enviar o PDF. Verifique se o Vercel Blob está configurado (BLOB_READ_WRITE_TOKEN).");
+    } finally {
+      setEnviandoArquivo(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -46,12 +68,20 @@ export default function AvisoForm({ students }: { students: Student[] }) {
       const response = await fetch("/api/admin/avisos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titulo, texto, data, destinatario, imagem: imagem || undefined }),
+        body: JSON.stringify({
+          titulo,
+          texto,
+          data,
+          destinatario,
+          imagem: imagem || undefined,
+          arquivoUrl: arquivoUrl || undefined,
+        }),
       });
       if (!response.ok) throw new Error("Não foi possível salvar o aviso.");
       setTitulo("");
       setTexto("");
       setImagem("");
+      setArquivoUrl("");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar.");
@@ -91,6 +121,13 @@ export default function AvisoForm({ students }: { students: Student[] }) {
           </label>
         </div>
       </div>
+
+      <label className="block text-sm font-medium text-ink/70">
+        Anexar PDF (opcional)
+        <input type="file" accept="application/pdf" onChange={handleArquivoChange} disabled={enviandoArquivo} className="mt-1 w-full text-sm text-ink/60" />
+        {enviandoArquivo && <span className="text-xs text-amora-700">Enviando...</span>}
+        {arquivoUrl && !enviandoArquivo && <p className="mt-1 truncate text-xs text-folha">✓ PDF anexado</p>}
+      </label>
 
       <label className="block text-sm font-medium text-ink/70">
         Destinatário

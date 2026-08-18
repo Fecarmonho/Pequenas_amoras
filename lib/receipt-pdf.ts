@@ -41,13 +41,14 @@ export async function baixarReciboPdf(elemento: HTMLElement, nomeArquivo: string
 }
 
 /** Usa o menu nativo de compartilhamento do celular (WhatsApp etc.) quando
- * disponível; sem suporte, cai pro download normal. */
-export async function enviarReciboPdf(elemento: HTMLElement, nomeArquivo: string) {
+ * disponível — vai o PDF junto com a frase, não só o arquivo sozinho; sem
+ * suporte, cai pro download normal. */
+export async function enviarReciboPdf(elemento: HTMLElement, nomeArquivo: string, mensagem?: string) {
   const blob = await gerarPdfBlob(elemento);
   const file = new File([blob], nomeArquivo, { type: "application/pdf" });
 
   if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({ files: [file], title: nomeArquivo });
+    await navigator.share({ files: [file], title: nomeArquivo, text: mensagem });
     return;
   }
 
