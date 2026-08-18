@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAllStudents } from "@/lib/students-db";
 import { getAllCharges } from "@/lib/charges-db";
 import { getConfiguracoes } from "@/lib/config-db";
+import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
 import { statusEfetivo, STATUS_LABEL, STATUS_EMOJI } from "@/lib/charge-status";
 import { formatBRL, formatDate } from "@/lib/format";
 import { HiChevronRight } from "react-icons/hi2";
@@ -11,7 +12,14 @@ import ChavePixConfig from "@/components/admin/ChavePixConfig";
 export const dynamic = "force-dynamic";
 
 export default async function MensalidadesPage() {
-  const [students, charges, config] = await Promise.all([getAllStudents(), getAllCharges(), getConfiguracoes()]);
+  const [students, config] = await Promise.all([getAllStudents(), getConfiguracoes()]);
+
+  // A mensalidade do mês renova sozinha (repete o valor da última) — só
+  // precisa checar isso pros estudantes ativos, toda vez que essa tela
+  // abre, antes de buscar as cobranças pra exibir.
+  await Promise.all(students.filter((s) => s.status === "ativo").map((s) => garantirMensalidadesAteHoje(s)));
+
+  const charges = await getAllCharges();
 
   const mensalidadePorAluno = new Map<string, Charge>();
   for (const c of charges) {

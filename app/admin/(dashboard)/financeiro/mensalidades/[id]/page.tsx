@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getStudentById } from "@/lib/students-db";
 import { getChargesByStudent } from "@/lib/charges-db";
 import { getConfiguracoes } from "@/lib/config-db";
+import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
 import StudentChargesHub from "@/components/admin/StudentChargesHub";
 import { HiOutlineArrowLeft } from "react-icons/hi2";
 
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function EstudanteFinanceiroPage({ params }: { params: { id: string } }) {
   const student = await getStudentById(params.id);
   if (!student) notFound();
+  await garantirMensalidadesAteHoje(student);
   const [charges, config] = await Promise.all([getChargesByStudent(student.id), getConfiguracoes()]);
 
   return (

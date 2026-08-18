@@ -109,12 +109,12 @@ export default function StudentChargesHub({
 }) {
   const router = useRouter();
   const reciboRef = useRef<HTMLDivElement>(null);
-  const [modo, setModo] = useState<"lista" | "nova-parcela" | "nova-extra" | string>("lista");
+  const [modo, setModo] = useState<"lista" | "nova-extra" | string>("lista");
   const [exportando, setExportando] = useState<"baixar" | "enviar" | null>(null);
 
   const mensalidades = charges.filter((c) => c.categoria === "mensalidade").sort((a, b) => b.vencimento.localeCompare(a.vencimento));
   const extras = charges.filter((c) => c.categoria === "extra").sort((a, b) => b.vencimento.localeCompare(a.vencimento));
-  const editando = !["lista", "nova-parcela", "nova-extra"].includes(modo) ? charges.find((c) => c.id === modo) : undefined;
+  const editando = !["lista", "nova-extra"].includes(modo) ? charges.find((c) => c.id === modo) : undefined;
   const total = charges.reduce((soma, c) => soma + c.valor, 0);
 
   function handleSaved() {
@@ -191,15 +191,8 @@ export default function StudentChargesHub({
           <div className="flex border-t border-amora-900/8">
             <button
               type="button"
-              onClick={() => setModo("nova-parcela")}
-              className="btn-primary flex flex-1 items-center justify-center gap-1.5 px-5 py-3 text-sm font-bold text-white"
-            >
-              <HiOutlinePlus className="h-4 w-4" /> Nova parcela
-            </button>
-            <button
-              type="button"
               onClick={() => setModo("nova-extra")}
-              className="flex flex-1 items-center justify-center gap-1.5 bg-amora-50 px-5 py-3 text-sm font-bold text-amora-700"
+              className="btn-primary flex flex-1 items-center justify-center gap-1.5 px-5 py-3 text-sm font-bold text-white"
             >
               <HiOutlinePlus className="h-4 w-4" /> Cobrança extra
             </button>
@@ -226,14 +219,9 @@ export default function StudentChargesHub({
         </button>
       </div>
 
-      {(modo === "nova-parcela" || modo === "nova-extra") && (
+      {modo === "nova-extra" && (
         <section className="rounded-2xl border border-amora-900/8 bg-white p-5 shadow-card">
-          <ChargeForm
-            categoria={modo === "nova-parcela" ? "mensalidade" : "extra"}
-            students={[student]}
-            onSaved={handleSaved}
-            diaVencimentoPadrao={student.diaVencimento}
-          />
+          <ChargeForm categoria="extra" students={[student]} onSaved={handleSaved} />
           <button type="button" onClick={() => setModo("lista")} className="mt-3 text-sm font-semibold text-ink/40 hover:text-ink/70">
             Cancelar
           </button>

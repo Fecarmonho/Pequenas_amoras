@@ -5,6 +5,7 @@ import { getStudentForGuardian } from "@/lib/students-db";
 import { getChargesByStudent } from "@/lib/charges-db";
 import { getAvisosParaEstudante } from "@/lib/avisos-db";
 import { getConfiguracoes } from "@/lib/config-db";
+import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
 import { formatDate } from "@/lib/format";
 import ReciboSection from "@/components/familia/ReciboSection";
 import { HiOutlineArrowLeft } from "react-icons/hi2";
@@ -19,6 +20,8 @@ export default async function StudentPage({ params }: { params: { id: string } }
   // responsável — trocar o :id na URL pra outro estudante não vaza nada.
   const student = await getStudentForGuardian(params.id, session.session.uid);
   if (!student) notFound();
+
+  await garantirMensalidadesAteHoje(student);
 
   const [charges, avisos, config] = await Promise.all([
     getChargesByStudent(student.id),
