@@ -34,7 +34,14 @@ export default function FamilyLoginPage() {
     setLoading(true);
     try {
       const email = await resolverEmail();
-      const credential = await signInWithEmailAndPassword(auth, email, senha);
+
+      let credential;
+      try {
+        credential = await signInWithEmailAndPassword(auth, email, senha);
+      } catch {
+        setError("Usuário ou senha incorretos. Se é seu primeiro acesso, use o botão abaixo pra criar sua senha.");
+        return;
+      }
       const idToken = await credential.user.getIdToken();
 
       const response = await fetch("/api/familia/session", {
@@ -42,12 +49,16 @@ export default function FamilyLoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
-      if (!response.ok) throw new Error("Não foi possível entrar. Tente novamente.");
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error ?? "A senha está certa, mas não consegui abrir sua sessão. Tenta de novo em alguns segundos.");
+        return;
+      }
 
       router.push("/familia");
       router.refresh();
     } catch (err) {
-      setError("Usuário ou senha incorretos. Se é seu primeiro acesso, use o botão abaixo pra criar sua senha.");
+      setError("Não encontramos um cadastro com esse usuário.");
     } finally {
       setLoading(false);
     }

@@ -16,7 +16,12 @@ export async function POST(request: NextRequest) {
   if (!idToken) return NextResponse.json({ error: "Token ausente." }, { status: 400 });
 
   try {
-    const decoded = await adminAuth.verifyIdToken(idToken, true);
+    // Sem checkRevoked: logo depois de criar/trocar a senha (fluxo de
+    // primeiro acesso), o Firebase pode marcar um login novo como
+    // "revogado" por um problema de granularidade de segundo entre o
+    // horário da troca e o horário do token — checar revogação aqui não
+    // traz benefício real (não temos um "sair de todos os aparelhos").
+    const decoded = await adminAuth.verifyIdToken(idToken);
     const guardian = await getGuardianByUid(decoded.uid);
     if (!guardian) {
       return NextResponse.json({ error: "Este login não está vinculado a nenhuma família." }, { status: 403 });

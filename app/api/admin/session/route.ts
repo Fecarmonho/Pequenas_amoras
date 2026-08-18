@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   if (!idToken) return NextResponse.json({ error: "Token ausente." }, { status: 400 });
 
   try {
-    await adminAuth.verifyIdToken(idToken, true);
+    await adminAuth.verifyIdToken(idToken);
     const sessionCookie = await adminAuth.createSessionCookie(idToken, {
       expiresIn: SESSION_DURATION_MS,
     });
