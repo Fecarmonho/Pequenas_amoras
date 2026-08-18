@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DestinatarioTipo, MODALIDADES, Student } from "@/lib/types";
+import { processarFoto } from "@/lib/image-compress";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-amora-900/15 bg-white px-4 py-2.5 text-sm text-ink focus:border-amora-600 focus:outline-none";
@@ -15,8 +16,24 @@ export default function AvisoForm({ students }: { students: Student[] }) {
   const [tipo, setTipo] = useState<DestinatarioTipo>("todos");
   const [studentId, setStudentId] = useState(students[0]?.id ?? "");
   const [modalidade, setModalidade] = useState<string>(MODALIDADES[0]);
+  const [imagem, setImagem] = useState("");
+  const [processandoImagem, setProcessandoImagem] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleImagemChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setProcessandoImagem(true);
+    try {
+      setImagem(await processarFoto(file));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao processar a imagem.");
+    } finally {
+      setProcessandoImagem(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,11 +46,12 @@ export default function AvisoForm({ students }: { students: Student[] }) {
       const response = await fetch("/api/admin/avisos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titulo, texto, data, destinatario }),
+        body: JSON.stringify({ titulo, texto, data, destinatario, imagem: imagem || undefined }),
       });
       if (!response.ok) throw new Error("Não foi possível salvar o aviso.");
       setTitulo("");
       setTexto("");
+      setImagem("");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar.");
@@ -56,6 +74,23 @@ export default function AvisoForm({ students }: { students: Student[] }) {
         Data
         <input required type="date" value={data} onChange={(e) => setData(e.target.value)} className={inputClass} />
       </label>
+
+      <div>
+        <span className="block text-sm font-medium text-ink/70">Imagem (opcional)</span>
+        <div className="mt-1 flex items-center gap-4">
+          {imagem ? (
+            <img src={imagem} alt="Prévia" className="h-16 w-16 rounded-xl border border-ink/10 object-cover" />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-ink/15 text-[10px] text-ink/30">
+              Sem imagem
+            </div>
+          )}
+          <label className="cursor-pointer rounded-full border border-amora-900/15 px-4 py-2 text-sm font-semibold text-ink/70 hover:border-amora-600">
+            {processandoImagem ? "Processando..." : imagem ? "Trocar" : "Escolher"}
+            <input type="file" accept="image/*" onChange={handleImagemChange} disabled={processandoImagem} className="hidden" />
+          </label>
+        </div>
+      </div>
 
       <label className="block text-sm font-medium text-ink/70">
         Destinatário

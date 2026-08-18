@@ -90,7 +90,10 @@ export default async function StudentPage({ params }: { params: { id: string } }
             <p className="text-sm text-ink/40">Nenhum aviso no momento.</p>
           ) : (
             avisos.map((a) => (
-              <div key={a.id} className="card-soft p-4">
+              <div key={a.id} className="card-soft overflow-hidden p-4">
+                {a.imagem && (
+                  <img src={a.imagem} alt="" className="-m-4 mb-3 h-40 w-[calc(100%+2rem)] max-w-none object-cover" />
+                )}
                 <p className="font-display text-sm font-bold text-amora-950">{a.titulo}</p>
                 <p className="mt-1 text-xs text-ink/50">{formatDate(a.data)}</p>
                 <p className="mt-2 text-sm text-ink/70">{a.texto}</p>

@@ -25,6 +25,9 @@ export default function AvisoCard({ aviso }: { aviso: Aviso }) {
 
   return (
     <div className="flex items-start gap-4 rounded-2xl border border-amora-900/8 bg-white p-4 shadow-card">
+      {aviso.imagem && (
+        <img src={aviso.imagem} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+      )}
       <div className="min-w-0 flex-1">
         <p className="font-display text-sm font-bold text-amora-950">{aviso.titulo}</p>
         <p className="mt-1 text-xs text-ink/50">{formatDate(aviso.data)} · {DESTINATARIO_LABEL[aviso.destinatario.tipo]}</p>

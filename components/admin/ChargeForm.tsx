@@ -181,15 +181,17 @@ export default function ChargeForm({
         <textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} rows={2} className={inputClass} />
       </label>
 
-      <div className="rounded-xl border border-amora-900/10 p-4">
-        <p className="text-xs font-bold uppercase tracking-wide text-amora-700">Boleto (opcional)</p>
-        <label className="mt-3 block text-sm font-medium text-ink/70">
-          Anexar PDF
-          <input type="file" accept="application/pdf" onChange={handleFileChange} className="mt-1 w-full text-sm text-ink/60" />
-          {uploading && <span className="text-xs text-amora-700">Enviando...</span>}
-          {pdfUrl && !uploading && <p className="mt-1 truncate text-xs text-folha">✓ PDF anexado</p>}
-        </label>
-      </div>
+      {categoria === "mensalidade" && (
+        <div className="rounded-xl border border-amora-900/10 p-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-amora-700">Boleto (opcional)</p>
+          <label className="mt-3 block text-sm font-medium text-ink/70">
+            Anexar PDF
+            <input type="file" accept="application/pdf" onChange={handleFileChange} className="mt-1 w-full text-sm text-ink/60" />
+            {uploading && <span className="text-xs text-amora-700">Enviando...</span>}
+            {pdfUrl && !uploading && <p className="mt-1 truncate text-xs text-folha">✓ PDF anexado</p>}
+          </label>
+        </div>
+      )}
 
       {error && <p className="text-sm font-medium text-rosa-600">{error}</p>}
 
