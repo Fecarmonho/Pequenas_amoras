@@ -14,6 +14,7 @@ const inputClass =
 
 const TABS = [
   { id: "dados", label: "Dados do estudante" },
+  { id: "responsaveis", label: "Responsáveis" },
   { id: "acesso", label: "Acesso da família" },
   { id: "mensalidade", label: "Mensalidade" },
   { id: "autorizados", label: "Autorizados" },
@@ -88,6 +89,10 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   const [modalidade, setModalidade] = useState<string>(student?.modalidade ?? MODALIDADES[0]);
   const [status, setStatus] = useState(student?.status ?? "ativo");
 
+  // Responsáveis legais (nome + parentesco) — pode ter mais de um, separado
+  // do acesso à Área da Família (que é um login único).
+  const [responsaveis, setResponsaveis] = useState<PessoaAutorizada[]>(student?.responsaveis ?? []);
+
   // Acesso da família (responsável)
   const [responsavelTelefone, setResponsavelTelefone] = useState(guardian?.telefone ?? "");
   const [usuario, setUsuario] = useState("");
@@ -129,6 +134,18 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
     }
   }
 
+  function addResponsavel() {
+    setResponsaveis((prev) => [...prev, { nome: "", parentesco: "" }]);
+  }
+
+  function updateResponsavel(index: number, field: keyof PessoaAutorizada, value: string) {
+    setResponsaveis((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  }
+
+  function removeResponsavel(index: number) {
+    setResponsaveis((prev) => prev.filter((_, i) => i !== index));
+  }
+
   function addAutorizado() {
     setPessoasAutorizadas((prev) => [...prev, { nome: "", parentesco: "" }]);
   }
@@ -153,13 +170,14 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       dataMatricula,
       modalidade,
       status,
+      responsaveis,
       pessoasAutorizadas,
       observacoes,
       diaVencimento: diaVencimento ? Number(diaVencimento) : undefined,
       responsavel:
         guardian || usuario || responsavelTelefone
           ? {
-              nome: `Responsável de ${nome}`,
+              nome: responsaveis[0]?.nome || `Responsável de ${nome}`,
               telefone: responsavelTelefone,
               usuario: !guardian ? usuario : undefined,
             }
@@ -317,6 +335,42 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
                 </select>
               </label>
             )}
+          </div>
+        )}
+
+        {tab === "responsaveis" && (
+          <div>
+            <p className="mb-3 text-sm text-ink/50">
+              Responsáveis legais do estudante (pode cadastrar mais de um — ex: mãe e pai). Aparece no perfil do estudante.
+            </p>
+            <div className="flex flex-col gap-3">
+              {responsaveis.map((p, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={p.nome}
+                    onChange={(e) => updateResponsavel(i, "nome", e.target.value)}
+                    placeholder="Nome"
+                    className={inputClass}
+                  />
+                  <input
+                    value={p.parentesco}
+                    onChange={(e) => updateResponsavel(i, "parentesco", e.target.value)}
+                    placeholder="Parentesco"
+                    className={inputClass}
+                  />
+                  <button type="button" onClick={() => removeResponsavel(i)} className="shrink-0 rounded-lg p-2 text-ink/40 hover:bg-rosa-100 hover:text-rosa-600">
+                    <HiOutlineTrash className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={addResponsavel}
+              className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-amora-700 hover:underline"
+            >
+              <HiOutlinePlus className="h-4 w-4" /> Adicionar responsável
+            </button>
           </div>
         )}
 

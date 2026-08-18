@@ -32,6 +32,10 @@ export interface Student {
   /** IDs de `Guardian` que podem ver este estudante — a checagem de posse
    * (nunca confiar em ID vindo da URL) sempre olha esse array. */
   guardianIds: string[];
+  /** Responsáveis legais do estudante (nome + parentesco) — pode ter mais
+   * de um (ex: mãe e pai). Separado do acesso à Área da Família, que é um
+   * login único por estudante. */
+  responsaveis?: PessoaAutorizada[];
   pessoasAutorizadas: PessoaAutorizada[];
   status: StatusEstudante;
   createdAt: string;

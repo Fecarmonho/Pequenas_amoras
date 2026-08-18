@@ -14,6 +14,7 @@ interface Payload {
   dataMatricula: string;
   modalidade: string;
   status?: Student["status"];
+  responsaveis?: Student["responsaveis"];
   pessoasAutorizadas: Student["pessoasAutorizadas"];
   observacoes?: string;
   responsavel?: { nome: string; telefone: string; usuario?: string };
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       observacoes: body.observacoes,
       diaVencimento: body.diaVencimento,
       guardianIds: [],
+      responsaveis: body.responsaveis ?? [],
       pessoasAutorizadas: body.pessoasAutorizadas ?? [],
       status: body.status ?? "ativo",
       createdAt: now,

@@ -79,19 +79,30 @@ export default async function PerfilEstudantePage({ params }: { params: { id: st
 
       <section className="card-soft mt-4 p-5">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-amora-700">
-          Responsável
+          Responsáveis
+        </h2>
+        {student.responsaveis && student.responsaveis.length > 0 ? (
+          <ul className="mt-3 flex flex-col gap-1 text-sm text-ink/80">
+            {student.responsaveis.map((r, i) => (
+              <li key={i}>{r.nome} — {r.parentesco}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm text-ink/40">Nenhum responsável cadastrado ainda.</p>
+        )}
+      </section>
+
+      <section className="card-soft mt-4 p-5">
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-amora-700">
+          Acesso da família
         </h2>
         {guardian ? (
           <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <div>
-              <dt className="text-ink/40">Nome</dt>
-              <dd className="font-medium text-ink/80">{guardian.nome}</dd>
-            </div>
-            <div>
               <dt className="text-ink/40">Telefone</dt>
               <dd className="font-medium text-ink/80">{guardian.telefone}</dd>
             </div>
-            <div className="col-span-2">
+            <div>
               <dt className="text-ink/40">Login</dt>
               <dd className="font-medium text-ink/80">{guardian.email}</dd>
             </div>
