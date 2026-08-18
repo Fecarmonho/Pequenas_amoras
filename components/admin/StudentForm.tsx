@@ -90,7 +90,6 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   const [status, setStatus] = useState(student?.status ?? "ativo");
 
   // Acesso da família (responsável)
-  const [responsavelNome, setResponsavelNome] = useState(guardian?.nome ?? "");
   const [responsavelTelefone, setResponsavelTelefone] = useState(guardian?.telefone ?? "");
   const [usuario, setUsuario] = useState("");
   const [usuarioEditadoManualmente, setUsuarioEditadoManualmente] = useState(false);
@@ -160,9 +159,9 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       observacoes,
       diaVencimento: diaVencimento ? Number(diaVencimento) : undefined,
       responsavel:
-        guardian || usuario || responsavelTelefone || responsavelNome
+        guardian || usuario || responsavelTelefone
           ? {
-              nome: responsavelNome || `Responsável de ${nome}`,
+              nome: `Responsável de ${nome}`,
               telefone: responsavelTelefone,
               usuario: !guardian ? usuario : undefined,
             }
@@ -227,7 +226,6 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
     try {
       const response = await fetch(`/api/admin/students/${student.id}/acesso`, { method: "DELETE" });
       if (!response.ok) throw new Error("Não foi possível excluir o acesso.");
-      setResponsavelNome("");
       setResponsavelTelefone("");
       router.refresh();
     } catch (err) {
@@ -389,11 +387,6 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
                 <label className="block text-sm font-medium text-ink/70">
                   Telefone (WhatsApp)
                   <input value={responsavelTelefone} onChange={(e) => setResponsavelTelefone(e.target.value)} className={inputClass} placeholder="(15) 90000-0000" />
-                </label>
-
-                <label className="block text-sm font-medium text-ink/70">
-                  Nome do responsável (opcional)
-                  <input value={responsavelNome} onChange={(e) => setResponsavelNome(e.target.value)} className={inputClass} />
                 </label>
               </>
             )}
