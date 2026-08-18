@@ -174,8 +174,14 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       pessoasAutorizadas,
       observacoes,
       diaVencimento: diaVencimento ? Number(diaVencimento) : undefined,
+      // Só manda "responsavel" (e portanto só tenta criar/mexer no acesso
+      // da família) quando o admin realmente preencheu o telefone na aba
+      // Acesso — o campo "usuário" se auto-sugere a partir do nome mesmo
+      // sem o admin abrir essa aba, então usar ele sozinho como gatilho
+      // fazia qualquer salvamento (em qualquer aba) tentar criar um acesso
+      // novo e falhar se o e-mail sugerido já estivesse em uso.
       responsavel:
-        guardian || usuario || responsavelTelefone
+        guardian || responsavelTelefone
           ? {
               nome: responsaveis[0]?.nome || `Responsável de ${nome}`,
               telefone: responsavelTelefone,
