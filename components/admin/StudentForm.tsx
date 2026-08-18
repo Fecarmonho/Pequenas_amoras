@@ -6,6 +6,7 @@ import { Guardian, PessoaAutorizada, Student, MODALIDADES } from "@/lib/types";
 import { processarFoto } from "@/lib/image-compress";
 import { slugify } from "@/lib/slug";
 import { onlyDigits } from "@/lib/cpf";
+import { proximoVencimento } from "@/lib/vencimento";
 import { HiOutlineTrash, HiOutlinePlus, HiOutlineClipboardDocument } from "react-icons/hi2";
 import { FaWhatsapp } from "react-icons/fa6";
 
@@ -100,12 +101,12 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   const [acessoError, setAcessoError] = useState<string | null>(null);
   const [acessoLoading, setAcessoLoading] = useState<"reenviar" | "excluir" | null>(null);
 
-  // Mensalidade (dia fixo pra sugerir vencimento; valor/data inicial só
-  // faz sentido na criação — depois disso, o ciclo mensal é gerenciado em
-  // Financeiro > Mensalidades)
+  // Mensalidade — o vencimento sempre vem do dia fixo (não tem campo de
+  // data separado): a mensalidade renova sozinha todo mês nesse dia (ver
+  // lib/mensalidade-renovacao.ts). Valor inicial só faz sentido na
+  // primeira vez; depois disso o ciclo é gerenciado em Financeiro > Mensalidades.
   const [diaVencimento, setDiaVencimento] = useState(student?.diaVencimento?.toString() ?? "");
   const [valorMensalidade, setValorMensalidade] = useState("");
-  const [vencimentoMensalidade, setVencimentoMensalidade] = useState("");
 
   const [pessoasAutorizadas, setPessoasAutorizadas] = useState<PessoaAutorizada[]>(student?.pessoasAutorizadas ?? []);
   const [observacoes, setObservacoes] = useState(student?.observacoes ?? "");
@@ -161,6 +162,13 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (valorMensalidade && !diaVencimento) {
+      setError("Informe o dia de vencimento fixo pra lançar a mensalidade.");
+      setTab("mensalidade");
+      return;
+    }
+
     setLoading(true);
 
     const payload = {
@@ -189,8 +197,8 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
             }
           : undefined,
       mensalidadeInicial:
-        valorMensalidade && vencimentoMensalidade
-          ? { valor: Number(valorMensalidade), vencimento: vencimentoMensalidade }
+        valorMensalidade && diaVencimento
+          ? { valor: Number(valorMensalidade), vencimento: proximoVencimento(Number(diaVencimento)) }
           : undefined,
     };
 
@@ -448,37 +456,32 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
         {tab === "mensalidade" && (
           <div className="flex flex-col gap-4">
             <label className="block text-sm font-medium text-ink/70">
-              Dia de vencimento fixo (opcional)
+              Dia de vencimento fixo
               <input
                 type="number"
                 min="1"
                 max="31"
+                required={Boolean(valorMensalidade)}
                 value={diaVencimento}
                 onChange={(e) => setDiaVencimento(e.target.value)}
                 placeholder="Ex: 18"
                 className={inputClass}
               />
               <span className="mt-1 block text-xs text-ink/40">
-                Todo mês a mensalidade vence nesse dia — usado só pra sugerir a data ao lançar uma nova parcela.
+                Todo mês a mensalidade vence nesse dia — não tem campo de data separado, é sempre esse dia. Obrigatório pra lançar a mensalidade.
               </span>
             </label>
 
             <div className="border-t border-amora-900/10 pt-4">
               <p className="text-sm text-ink/50">
                 {isEdit
-                  ? "Preencha valor e vencimento pra lançar uma nova mensalidade — ela aparece direto em Financeiro → Mensalidades."
+                  ? "Preencha o valor pra lançar uma nova mensalidade — ela aparece direto em Financeiro → Mensalidades, com vencimento no dia fixo acima."
                   : "Lança a primeira mensalidade já na criação do estudante (opcional — dá pra fazer isso depois também)."}
               </p>
-              <div className="mt-3 grid grid-cols-2 gap-4">
-                <label className="block text-sm font-medium text-ink/70">
-                  Valor (R$)
-                  <input type="number" step="0.01" min="0" value={valorMensalidade} onChange={(e) => setValorMensalidade(e.target.value)} className={inputClass} />
-                </label>
-                <label className="block text-sm font-medium text-ink/70">
-                  Vencimento
-                  <input type="date" value={vencimentoMensalidade} onChange={(e) => setVencimentoMensalidade(e.target.value)} className={inputClass} />
-                </label>
-              </div>
+              <label className="mt-3 block text-sm font-medium text-ink/70">
+                Valor (R$)
+                <input type="number" step="0.01" min="0" value={valorMensalidade} onChange={(e) => setValorMensalidade(e.target.value)} className={inputClass} />
+              </label>
             </div>
           </div>
         )}
