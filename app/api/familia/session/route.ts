@@ -3,7 +3,9 @@ import { adminAuth } from "@/lib/firebase-admin";
 import { getGuardianByUid } from "@/lib/guardians-db";
 import { FAMILY_SESSION_COOKIE } from "@/lib/family-session";
 
-const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 30; // 30 dias — famílias acessam pelo celular, sessão mais longa
+// 14 dias é o máximo que o Firebase permite pra cookie de sessão
+// (createSessionCookie rejeita qualquer duração acima disso).
+const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 14;
 
 /**
  * POST /api/familia/session
