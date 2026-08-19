@@ -7,21 +7,21 @@ export default function Hero() {
       <FloatingStars count={6} />
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-2 px-4 py-6 sm:gap-6 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 lg:py-28">
-        <div className="relative mx-auto flex w-64 items-center justify-center gap-1 sm:w-96 sm:gap-3 lg:order-2 lg:w-full lg:max-w-lg lg:justify-center lg:gap-6">
+        <div className="relative mx-auto w-44 sm:w-64 lg:order-2 lg:w-full lg:max-w-sm">
           <div className="absolute inset-0 -z-10 rounded-full bg-rosa-500/20 blur-3xl" aria-hidden="true" />
-          {/* Flexbox em vez de posicionamento absoluto — os astronautas
-              ficam ao lado do badge por causa do layout normal, nunca por
-              cima dele (sem depender de contar margens/offsets certinho). */}
           <img
             src="/brand/logo-badge.png"
             alt="Astronautas da Pequenas Amoras flutuando entre estrelas"
-            className="w-44 shrink-0 animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)] sm:w-64 lg:w-72"
+            className="w-full animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)]"
           />
+          {/* left-full: começa exatamente na borda direita do badge, então
+              nunca sobrepõe ele, não importa o tamanho da tela — sem
+              precisar mexer no tamanho/posição do badge em si. */}
           <img
             src="/brand/astronautas-voando.png"
             alt=""
             aria-hidden="true"
-            className="w-16 shrink-0 animate-float-slower opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:w-24 lg:w-32"
+            className="pointer-events-none absolute left-full top-1/2 ml-1 w-14 -translate-y-1/2 animate-float-slower opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:ml-3 sm:w-24 lg:ml-4 lg:w-32"
           />
         </div>
 
