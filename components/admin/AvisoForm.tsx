@@ -3,23 +3,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
-import { DestinatarioTipo, MODALIDADES, Student } from "@/lib/types";
+import { Aviso, DestinatarioTipo, MODALIDADES, Student } from "@/lib/types";
 import { processarFoto } from "@/lib/image-compress";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-amora-900/15 bg-white px-4 py-2.5 text-sm text-ink focus:border-amora-600 focus:outline-none";
 
-export default function AvisoForm({ students }: { students: Student[] }) {
+export default function AvisoForm({
+  students,
+  aviso,
+  onSaved,
+}: {
+  students: Student[];
+  /** Presente = editando um aviso existente; ausente = criando um novo. */
+  aviso?: Aviso;
+  /** Chamado depois de salvar edição — pra fechar o modo de edição. */
+  onSaved?: () => void;
+}) {
+  const isEdit = Boolean(aviso);
   const router = useRouter();
-  const [titulo, setTitulo] = useState("");
-  const [texto, setTexto] = useState("");
-  const [data, setData] = useState(new Date().toISOString().slice(0, 10));
-  const [tipo, setTipo] = useState<DestinatarioTipo>("todos");
-  const [studentId, setStudentId] = useState(students[0]?.id ?? "");
-  const [modalidade, setModalidade] = useState<string>(MODALIDADES[0]);
-  const [imagem, setImagem] = useState("");
+  const [titulo, setTitulo] = useState(aviso?.titulo ?? "");
+  const [texto, setTexto] = useState(aviso?.texto ?? "");
+  const [data, setData] = useState(aviso?.data ?? new Date().toISOString().slice(0, 10));
+  const [tipo, setTipo] = useState<DestinatarioTipo>(aviso?.destinatario.tipo ?? "todos");
+  const [studentId, setStudentId] = useState(aviso?.destinatario.studentId ?? students[0]?.id ?? "");
+  const [modalidade, setModalidade] = useState<string>(aviso?.destinatario.modalidade ?? MODALIDADES[0]);
+  const [imagem, setImagem] = useState(aviso?.imagem ?? "");
   const [processandoImagem, setProcessandoImagem] = useState(false);
-  const [arquivoUrl, setArquivoUrl] = useState("");
+  const [arquivoUrl, setArquivoUrl] = useState(aviso?.arquivoUrl ?? "");
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,23 +76,36 @@ export default function AvisoForm({ students }: { students: Student[] }) {
       const destinatario =
         tipo === "estudante" ? { tipo, studentId } : tipo === "modalidade" ? { tipo, modalidade } : { tipo };
 
-      const response = await fetch("/api/admin/avisos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          titulo,
-          texto,
-          data,
-          destinatario,
-          imagem: imagem || undefined,
-          arquivoUrl: arquivoUrl || undefined,
-        }),
-      });
+      const payload = {
+        titulo,
+        texto,
+        data,
+        destinatario,
+        imagem: imagem || undefined,
+        arquivoUrl: arquivoUrl || undefined,
+      };
+
+      const response = isEdit
+        ? await fetch(`/api/admin/avisos/${aviso!.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          })
+        : await fetch("/api/admin/avisos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
       if (!response.ok) throw new Error("Não foi possível salvar o aviso.");
-      setTitulo("");
-      setTexto("");
-      setImagem("");
-      setArquivoUrl("");
+
+      if (isEdit) {
+        onSaved?.();
+      } else {
+        setTitulo("");
+        setTexto("");
+        setImagem("");
+        setArquivoUrl("");
+      }
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar.");
@@ -162,9 +186,16 @@ export default function AvisoForm({ students }: { students: Student[] }) {
 
       {error && <p className="text-sm font-medium text-rosa-600">{error}</p>}
 
-      <button type="submit" disabled={saving} className="btn-primary rounded-full px-6 py-3 font-display font-bold text-white disabled:opacity-60">
-        {saving ? "Salvando..." : "Publicar aviso"}
-      </button>
+      <div className="flex items-center gap-3">
+        <button type="submit" disabled={saving} className="btn-primary rounded-full px-6 py-3 font-display font-bold text-white disabled:opacity-60">
+          {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Publicar aviso"}
+        </button>
+        {isEdit && (
+          <button type="button" onClick={onSaved} className="text-sm font-semibold text-ink/40 hover:text-ink/70">
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   );
 }
