@@ -35,8 +35,10 @@ export default function BannerCarousel({ slides }: { slides: CarouselSlide[] }) 
   function goTo(index: number) {
     const track = trackRef.current;
     if (!track) return;
-    const child = track.children[index] as HTMLElement | undefined;
-    child?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+    // scrollIntoView mexe na rolagem da página inteira (mesmo com
+    // block:"nearest"), não só do carrossel — por isso a tela "subia" a
+    // cada troca de slide. scrollTo só afeta a rolagem horizontal do track.
+    track.scrollTo({ left: index * track.clientWidth, behavior: "smooth" });
     setActive(index);
   }
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { processarFoto } from "@/lib/image-compress";
+import { upload } from "@vercel/blob/client";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-amora-900/15 bg-white px-4 py-2.5 text-sm text-ink focus:border-amora-600 focus:outline-none";
@@ -27,9 +27,13 @@ export default function BannerForm() {
     setProcessando(true);
     setError(null);
     try {
-      setImagem(await processarFoto(file));
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/banners/upload",
+      });
+      setImagem(blob.url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao processar a imagem.");
+      setError("Não foi possível enviar a imagem. Verifique se o Vercel Blob está configurado.");
     } finally {
       setProcessando(false);
     }
@@ -89,10 +93,14 @@ export default function BannerForm() {
             <div className="flex h-20 w-32 items-center justify-center rounded-lg border border-dashed border-ink/15 text-[10px] text-ink/30">Sem imagem</div>
           )}
           <label className="cursor-pointer rounded-full border border-amora-900/15 px-4 py-2 text-sm font-semibold text-ink/70 hover:border-amora-600">
-            {processando ? "Processando..." : imagem ? "Trocar" : "Escolher"}
+            {processando ? "Enviando..." : imagem ? "Trocar" : "Escolher"}
             <input type="file" accept="image/*" onChange={handleImagemChange} disabled={processando} className="hidden" />
           </label>
         </div>
+        <p className="mt-1.5 text-xs text-ink/40">
+          Ideal: 1920×1080px (paisagem, formato 16:9), com o assunto principal centralizado — no celular a imagem é
+          cortada nas laterais.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

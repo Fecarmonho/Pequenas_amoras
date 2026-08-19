@@ -7,18 +7,21 @@ export default function Hero() {
       <FloatingStars count={6} />
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-2 px-4 py-6 sm:gap-6 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 lg:py-28">
-        <div className="relative mx-auto w-44 sm:w-64 lg:order-2 lg:w-full lg:max-w-sm">
+        <div className="relative mx-auto w-56 sm:w-80 lg:order-2 lg:w-full lg:max-w-md">
           <div className="absolute inset-0 -z-10 rounded-full bg-rosa-500/20 blur-3xl" aria-hidden="true" />
+          {/* Badge menor que o container (não ocupa a largura toda) pra
+              sobrar espaço nas bordas — assim os astronautas ficam ao lado,
+              sem serem tampados por ele. */}
+          <img
+            src="/brand/logo-badge.png"
+            alt="Astronautas da Pequenas Amoras flutuando entre estrelas"
+            className="relative mx-auto w-3/4 animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)]"
+          />
           <img
             src="/brand/astronautas-voando.png"
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute -left-10 -top-8 hidden w-28 animate-float-slower opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:block sm:-left-16 sm:-top-12 sm:w-44 lg:-left-20 lg:-top-14 lg:w-56"
-          />
-          <img
-            src="/brand/logo-badge.png"
-            alt="Astronautas da Pequenas Amoras flutuando entre estrelas"
-            className="relative z-10 w-full animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)]"
+            className="pointer-events-none absolute -right-2 -top-2 w-24 animate-float-slower opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:-right-4 sm:top-0 sm:w-36 lg:w-44"
           />
         </div>
 
