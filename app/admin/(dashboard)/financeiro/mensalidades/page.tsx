@@ -4,11 +4,27 @@ import { getConfiguracoes } from "@/lib/config-db";
 import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
 import { statusEfetivo } from "@/lib/charge-status";
 import { formatCompetencia } from "@/lib/format";
-import { Charge } from "@/lib/types";
+import { Charge, Student } from "@/lib/types";
 import ChavePixConfig from "@/components/admin/ChavePixConfig";
-import MensalidadesTabs, { VigenteRow, AbertoRow, HistoricoRow } from "@/components/admin/MensalidadesTabs";
+import MensalidadesTabs, { MensalidadeStudentRow, HistoricoRow } from "@/components/admin/MensalidadesTabs";
 
 export const dynamic = "force-dynamic";
+
+/** Uma linha por estudante — se ele não tem cobrança em aberto (mês atual,
+ * ou nenhuma pendência), volta null nos campos de cobrança em vez de sumir
+ * da lista. É assim que "todas as cadastradas no sistema" continua
+ * aparecendo mesmo sem mensalidade lançada ainda. */
+function linhaPorAluno(s: Student, charge: Charge | undefined): MensalidadeStudentRow {
+  return {
+    studentId: s.id,
+    studentNome: s.nome,
+    chargeId: charge?.id ?? null,
+    competencia: charge?.competencia ?? null,
+    valor: charge?.valor ?? null,
+    vencimento: charge?.vencimento ?? null,
+    status: charge ? statusEfetivo(charge) : null,
+  };
+}
 
 export default async function MensalidadesPage() {
   const [students, config] = await Promise.all([getAllStudents(), getConfiguracoes()]);
@@ -22,43 +38,30 @@ export default async function MensalidadesPage() {
   const studentsPorId = new Map(students.map((s) => [s.id, s]));
   const mesAtual = new Date().toISOString().slice(0, 7);
 
-  // Mês vigente por aluno, ainda não paga — é a área de trabalho do dia a
-  // dia: marcar como recebida aqui, ou entrar no aluno pra lançar uma
-  // cobrança extra.
+  // Mês vigente por aluno, ainda não paga.
   const vigentePorAluno = new Map<string, Charge>();
   for (const c of charges) {
     if (c.categoria === "mensalidade" && c.competencia === mesAtual && c.status !== "pago") {
       vigentePorAluno.set(c.studentId, c);
     }
   }
-  const vigente: VigenteRow[] = students
-    .filter((s) => vigentePorAluno.has(s.id))
-    .map((s) => {
-      const charge = vigentePorAluno.get(s.id)!;
-      return {
-        studentId: s.id,
-        studentNome: s.nome,
-        chargeId: charge.id,
-        valor: charge.valor,
-        vencimento: charge.vencimento,
-        status: statusEfetivo(charge),
-      };
-    });
 
-  // Todas as mensalidades em aberto, de qualquer mês — visão geral pra não
-  // deixar uma parcela atrasada de mês anterior invisível.
-  const todasEmAberto: AbertoRow[] = charges
-    .filter((c) => c.categoria === "mensalidade" && c.status !== "pago")
-    .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
-    .map((c) => ({
-      chargeId: c.id,
-      studentId: c.studentId,
-      studentNome: studentsPorId.get(c.studentId)?.nome ?? null,
-      competencia: c.competencia ?? null,
-      valor: c.valor,
-      vencimento: c.vencimento,
-      status: statusEfetivo(c),
-    }));
+  // Mensalidade em aberto mais recente por aluno, de qualquer mês — pega a
+  // mais atual de cada um, então uma parcela atrasada de mês anterior não
+  // fica escondida (some do "mês vigente" só quando não é a mais recente).
+  const abertaMaisRecentePorAluno = new Map<string, Charge>();
+  for (const c of charges) {
+    if (c.categoria !== "mensalidade" || c.status === "pago" || !c.competencia) continue;
+    const atual = abertaMaisRecentePorAluno.get(c.studentId);
+    if (!atual || c.competencia > atual.competencia!) abertaMaisRecentePorAluno.set(c.studentId, c);
+  }
+
+  // As duas abas são por estudante — todo mundo cadastrado aparece, com
+  // "Sem mensalidade" quando não há cobrança em aberto pra mostrar; ao
+  // marcar como recebida, a linha correspondente passa a mostrar isso e
+  // a cobrança se move pro histórico.
+  const vigente: MensalidadeStudentRow[] = students.map((s) => linhaPorAluno(s, vigentePorAluno.get(s.id)));
+  const todasEmAberto: MensalidadeStudentRow[] = students.map((s) => linhaPorAluno(s, abertaMaisRecentePorAluno.get(s.id)));
 
   const historico: HistoricoRow[] = charges
     .filter((c) => c.categoria === "mensalidade" && c.status === "pago")

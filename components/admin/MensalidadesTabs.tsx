@@ -8,23 +8,17 @@ import { formatBRL, formatDate, formatCompetencia } from "@/lib/format";
 import { HiChevronRight } from "react-icons/hi2";
 import MarcarRecebidoButton from "@/components/admin/MarcarRecebidoButton";
 
-export interface VigenteRow {
+/** Uma linha por estudante — os campos de cobrança vêm null quando esse
+ * aluno não tem nada em aberto pra mostrar (nunca lançou mensalidade, ou
+ * já está tudo pago). Usado nas abas "Mês vigente" e "Todas". */
+export interface MensalidadeStudentRow {
   studentId: string;
   studentNome: string;
-  chargeId: string;
-  valor: number;
-  vencimento: string;
-  status: StatusCobrancaEfetivo;
-}
-
-export interface AbertoRow {
-  chargeId: string;
-  studentId: string | null;
-  studentNome: string | null;
+  chargeId: string | null;
   competencia: string | null;
-  valor: number;
-  vencimento: string;
-  status: StatusCobrancaEfetivo;
+  valor: number | null;
+  vencimento: string | null;
+  status: StatusCobrancaEfetivo | null;
 }
 
 export interface HistoricoRow {
@@ -53,6 +47,61 @@ function NomeAluno({ studentId, nome }: { studentId: string | null; nome: string
   );
 }
 
+function TabelaPorAluno({ rows, mostrarCompetencia }: { rows: MensalidadeStudentRow[]; mostrarCompetencia: boolean }) {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
+      <table className="w-full text-left text-sm">
+        <thead className="border-b border-amora-900/8 text-xs uppercase tracking-wide text-ink/40">
+          <tr>
+            <th className="px-4 py-3">Estudante</th>
+            {mostrarCompetencia && <th className="px-4 py-3">Competência</th>}
+            <th className="px-4 py-3">Valor</th>
+            <th className="px-4 py-3">Vencimento</th>
+            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-amora-900/5">
+          {rows.map((r) => (
+            <tr key={r.studentId}>
+              <td className="px-4 py-3">
+                <NomeAluno studentId={r.studentId} nome={r.studentNome} />
+              </td>
+              {mostrarCompetencia && (
+                <td className="px-4 py-3 text-ink/60">{r.competencia ? formatCompetencia(r.competencia) : "—"}</td>
+              )}
+              <td className="px-4 py-3 text-ink/60">{r.valor !== null ? formatBRL(r.valor) : "—"}</td>
+              <td className="px-4 py-3 text-ink/60">{r.vencimento ? formatDate(r.vencimento) : "—"}</td>
+              <td className="px-4 py-3">
+                {r.status ? (
+                  <span className="text-xs font-semibold">{STATUS_EMOJI[r.status]} {STATUS_LABEL[r.status]}</span>
+                ) : (
+                  <span className="text-xs text-ink/30">Sem mensalidade</span>
+                )}
+              </td>
+              <td className="px-4 py-3">
+                <div className="flex items-center justify-end gap-2">
+                  {r.chargeId && <MarcarRecebidoButton chargeId={r.chargeId} />}
+                  <Link href={`/admin/financeiro/mensalidades/${r.studentId}`}>
+                    <HiChevronRight className="h-4 w-4 text-ink/30" />
+                  </Link>
+                </div>
+              </td>
+            </tr>
+          ))}
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={mostrarCompetencia ? 6 : 5} className="px-4 py-8 text-center text-ink/40">
+                Nenhum estudante cadastrado ainda.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function MensalidadesTabs({
   mesAtualLabel,
   vigente,
@@ -60,8 +109,8 @@ export default function MensalidadesTabs({
   historico,
 }: {
   mesAtualLabel: string;
-  vigente: VigenteRow[];
-  todasEmAberto: AbertoRow[];
+  vigente: MensalidadeStudentRow[];
+  todasEmAberto: MensalidadeStudentRow[];
   historico: HistoricoRow[];
 }) {
   const [tab, setTab] = useState<TabId>("vigente");
@@ -88,91 +137,17 @@ export default function MensalidadesTabs({
           <p className="mb-3 text-sm text-ink/50">
             Mensalidades de {mesAtualLabel}. Marque como recebida aqui, ou clique num estudante pra lançar uma cobrança extra.
           </p>
-          <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-amora-900/8 text-xs uppercase tracking-wide text-ink/40">
-                <tr>
-                  <th className="px-4 py-3">Estudante</th>
-                  <th className="px-4 py-3">Valor</th>
-                  <th className="px-4 py-3">Vencimento</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-amora-900/5">
-                {vigente.map((r) => (
-                  <tr key={r.chargeId}>
-                    <td className="px-4 py-3">
-                      <NomeAluno studentId={r.studentId} nome={r.studentNome} />
-                    </td>
-                    <td className="px-4 py-3 text-ink/60">{formatBRL(r.valor)}</td>
-                    <td className="px-4 py-3 text-ink/60">{formatDate(r.vencimento)}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-semibold">{STATUS_EMOJI[r.status]} {STATUS_LABEL[r.status]}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        <MarcarRecebidoButton chargeId={r.chargeId} />
-                        {r.studentId && (
-                          <Link href={`/admin/financeiro/mensalidades/${r.studentId}`}>
-                            <HiChevronRight className="h-4 w-4 text-ink/30" />
-                          </Link>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {vigente.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-ink/40">
-                      Nenhuma mensalidade em aberto no mês.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <TabelaPorAluno rows={vigente} mostrarCompetencia={false} />
         </section>
       )}
 
       {tab === "todas" && (
         <section>
-          <p className="mb-3 text-sm text-ink/50">Visão geral de tudo em aberto, de qualquer mês — clique pra ver e editar.</p>
-          <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-amora-900/8 text-xs uppercase tracking-wide text-ink/40">
-                <tr>
-                  <th className="px-4 py-3">Estudante</th>
-                  <th className="px-4 py-3">Competência</th>
-                  <th className="px-4 py-3">Valor</th>
-                  <th className="px-4 py-3">Vencimento</th>
-                  <th className="px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-amora-900/5">
-                {todasEmAberto.map((c) => (
-                  <tr key={c.chargeId}>
-                    <td className="px-4 py-3">
-                      <NomeAluno studentId={c.studentId} nome={c.studentNome} />
-                    </td>
-                    <td className="px-4 py-3 text-ink/60">{c.competencia ? formatCompetencia(c.competencia) : "—"}</td>
-                    <td className="px-4 py-3 text-ink/60">{formatBRL(c.valor)}</td>
-                    <td className="px-4 py-3 text-ink/60">{formatDate(c.vencimento)}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-semibold">{STATUS_EMOJI[c.status]} {STATUS_LABEL[c.status]}</span>
-                    </td>
-                  </tr>
-                ))}
-                {todasEmAberto.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-ink/40">
-                      Nenhuma mensalidade em aberto.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <p className="mb-3 text-sm text-ink/50">
+            Todo estudante cadastrado, com a mensalidade em aberto mais recente de cada um (qualquer mês) — clique
+            pra ver e editar.
+          </p>
+          <TabelaPorAluno rows={todasEmAberto} mostrarCompetencia />
         </section>
       )}
 
