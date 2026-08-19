@@ -5,7 +5,7 @@ export default async function ContactCta() {
   const config = await getConfiguracoes();
 
   return (
-    <section id="contato" className="mx-auto max-w-6xl px-4 pb-16 sm:pb-20">
+    <section id="contato" className="mx-auto max-w-6xl px-0 pb-16 sm:px-4 sm:pb-20">
       <div className="relative overflow-hidden rounded-3xl shadow-glow">
         <img src="/brand/contato-banner.png" alt={`Vem fazer parte da família ${config.nomeEscola}`} className="block h-auto w-full" />
 
