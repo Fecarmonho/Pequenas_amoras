@@ -5,13 +5,18 @@ import { getConfiguracoes } from "@/lib/config-db";
 import { buildWhatsappLink } from "@/lib/whatsapp";
 import BerryIcon from "@/components/decor/BerryIcon";
 
-/** Evita a última parte do endereço (ex: "- SP") quebrar sozinha numa
- * linha isolada no celular — junta só o trecho depois da última vírgula
- * (cidade + UF) com espaço não-quebrável, sem mexer no resto do texto. */
+/** Evita pedaços do endereço quebrando linha de um jeito estranho no
+ * celular: "Nº" separado do número, e a cidade + UF (depois da última
+ * vírgula) separados — junta essas partes com espaço não-quebrável, sem
+ * mexer no resto do texto. */
 function semQuebraNoFinal(endereco: string) {
-  const ultimaVirgula = endereco.lastIndexOf(",");
-  if (ultimaVirgula === -1) return endereco;
-  return endereco.slice(0, ultimaVirgula + 1) + endereco.slice(ultimaVirgula + 1).replace(/ /g, " ");
+  const semNumeroQuebrado = endereco.replace(/(N[ºo°]\.?) (\d)/gi, `$1 $2`);
+  const ultimaVirgula = semNumeroQuebrado.lastIndexOf(",");
+  if (ultimaVirgula === -1) return semNumeroQuebrado;
+  return (
+    semNumeroQuebrado.slice(0, ultimaVirgula + 1) +
+    semNumeroQuebrado.slice(ultimaVirgula + 1).replace(/ /g, " ")
+  );
 }
 
 export default async function SiteFooter() {
