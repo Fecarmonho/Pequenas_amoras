@@ -12,8 +12,8 @@ export default async function ContactCta() {
         <BerryIcon className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rotate-12 opacity-60 sm:h-36 sm:w-36" />
 
         <div className="relative grid gap-8 p-6 sm:p-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-stretch lg:gap-0 lg:p-0">
-          <div className="mx-auto w-full max-w-xs overflow-hidden rounded-3xl shadow-card lg:mx-0 lg:max-w-none lg:rounded-none lg:rounded-l-3xl">
-            <img src="/brand/contato-foto.png" alt="Criança da Pequenas Amoras brincando" className="h-full w-full object-cover" />
+          <div className="mx-auto aspect-[4/3] w-full max-w-[220px] overflow-hidden rounded-3xl shadow-card sm:max-w-[260px] lg:mx-0 lg:aspect-auto lg:max-w-none lg:rounded-none lg:rounded-l-3xl">
+            <img src="/brand/contato-foto.png" alt="Criança da Pequenas Amoras brincando" className="h-full w-full object-cover object-top" />
           </div>
 
           <div className="text-center lg:flex lg:flex-col lg:justify-center lg:px-12 lg:py-10 lg:text-left">

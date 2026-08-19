@@ -11,6 +11,7 @@ export interface CarouselSlide {
   descricao?: string;
   data?: string;
   imagem: string;
+  imagemMobile?: string;
   botaoTexto?: string;
   botaoLink?: string;
 }
@@ -61,7 +62,10 @@ export default function BannerCarousel({ slides }: { slides: CarouselSlide[] }) 
         >
           {slides.map((slide) => (
             <div key={slide.id} className="relative aspect-[4/5] w-full shrink-0 snap-start sm:aspect-[16/9]">
-              <img src={slide.imagem} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              <picture>
+                {slide.imagemMobile && <source media="(max-width: 639px)" srcSet={slide.imagemMobile} />}
+                <img src={slide.imagem} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-amora-950/90 via-amora-900/40 to-amora-900/10" />
 
               <div className="relative flex h-full flex-col justify-end p-6 sm:p-10">

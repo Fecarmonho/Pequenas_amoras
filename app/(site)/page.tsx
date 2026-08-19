@@ -53,6 +53,7 @@ export default async function HomePage() {
           descricao: b.descricao,
           data: b.data,
           imagem: b.imagem,
+          imagemMobile: b.imagemMobile,
           botaoTexto: b.botaoTexto,
           botaoLink: b.botaoLink,
         }))
