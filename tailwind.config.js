@@ -50,6 +50,7 @@ module.exports = {
       animation: {
         "float-slow": "float-slow 6s ease-in-out infinite",
         "float-slower": "float-slow 9s ease-in-out infinite",
+        "float-down": "float-down 6s ease-in-out infinite",
         "fade-up": "fade-up 0.6s ease-out both",
         "fade-in": "fade-in 0.6s ease-out both",
         twinkle: "twinkle 2.6s ease-in-out infinite",
@@ -60,6 +61,10 @@ module.exports = {
         "float-slow": {
           "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
           "50%": { transform: "translateY(-14px) rotate(3deg)" },
+        },
+        "float-down": {
+          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
+          "50%": { transform: "translateY(14px) rotate(-3deg)" },
         },
         "fade-up": {
           "0%": { opacity: "0", transform: "translateY(18px)" },

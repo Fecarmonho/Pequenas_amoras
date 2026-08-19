@@ -17,12 +17,13 @@ export default function Hero() {
           {/* left-full / right-full: começam exatamente na borda do badge,
               então nunca sobrepõem ele, não importa o tamanho da tela —
               sem precisar mexer no tamanho/posição do badge em si. Um de
-              cada lado (o da esquerda espelhado, "vindo" na direção do badge). */}
+              cada lado (o da esquerda espelhado, "vindo" na direção do
+              badge), e cada um flutua num sentido — um sobe, outro desce. */}
           <img
             src="/brand/astronautas-voando.png"
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute left-full top-1/2 ml-1 w-14 -translate-y-1/2 animate-float-slower opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:ml-3 sm:w-24 lg:ml-4 lg:w-32"
+            className="pointer-events-none absolute left-full top-1/2 ml-1 w-14 -translate-y-1/2 animate-float-down opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:ml-3 sm:w-24 lg:ml-4 lg:w-32"
           />
           <img
             src="/brand/astronautas-voando.png"
