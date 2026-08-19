@@ -18,14 +18,21 @@ export default async function ContactCta() {
             Fale com a gente pelo WhatsApp e conheça de perto o nosso espaço, nossa proposta e
             como funciona a matrícula.
           </p>
-          <a
-            href={buildWhatsappLink(config.whatsapp)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary shine mt-7 inline-flex items-center gap-2 rounded-full px-7 py-3.5 font-display font-bold text-white"
-          >
-            <FaWhatsapp className="h-5 w-5" /> Conversar no WhatsApp
-          </a>
+          <div className="mt-7 flex items-center justify-center gap-3">
+            <BerryIcon className="hidden h-9 w-9 shrink-0 sm:block" />
+            <a
+              href={buildWhatsappLink(config.whatsapp)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 rounded-full border-2 border-dashed border-white/25 bg-amora-950 px-6 py-3 font-display font-bold text-white shadow-lg transition-transform hover:scale-105 sm:px-7 sm:py-3.5"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <FaWhatsapp className="h-4 w-4" />
+              </span>
+              Conversar no WhatsApp
+            </a>
+            <BerryIcon className="hidden h-9 w-9 shrink-0 sm:block" />
+          </div>
         </div>
       </div>
     </section>
