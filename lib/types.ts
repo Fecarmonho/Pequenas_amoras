@@ -25,6 +25,8 @@ export interface Student {
   cpf?: string;
   dataMatricula: string;
   modalidade: string;
+  /** Só se aplica à modalidade "Contraturno Escolar" — Manhã, Tarde ou Integral. */
+  periodo?: string;
   observacoes?: string;
   /** Dia do mês (1-31) em que a mensalidade normalmente vence — usado só
    * pra sugerir a data ao lançar uma nova parcela, não é obrigatório. */
@@ -145,7 +147,8 @@ export interface AuditLog {
   detalhes?: string;
 }
 
-export const MODALIDADES = ["Contraturno Escolar", "Recreação Infantil"] as const;
+export const MODALIDADES = ["Contraturno Escolar", "Colônia de Férias"] as const;
+export const PERIODOS = ["Manhã", "Tarde", "Integral"] as const;
 export const TIPOS_COBRANCA_EXTRA: { value: TipoCobranca; label: string }[] = [
   { value: "diaria", label: "Diária" },
   { value: "atividade_especial", label: "Atividade especial" },

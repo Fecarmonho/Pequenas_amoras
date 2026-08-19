@@ -6,7 +6,7 @@ export default function Hero() {
     <section className="hero-space hero-space-gradient starfield relative overflow-hidden">
       <FloatingStars count={6} />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-2 px-4 py-6 sm:gap-6 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 lg:py-28">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-2 px-4 pb-6 pt-4 sm:gap-6 sm:pb-20 sm:pt-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 lg:pb-24 lg:pt-14">
         <div className="relative mx-auto w-44 sm:w-64 lg:order-2 lg:w-full lg:max-w-sm">
           <div className="absolute inset-0 -z-10 rounded-full bg-rosa-500/20 blur-3xl" aria-hidden="true" />
           <img

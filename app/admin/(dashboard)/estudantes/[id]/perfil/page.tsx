@@ -36,7 +36,7 @@ export default async function PerfilEstudantePage({ params }: { params: { id: st
         )}
         <div>
           <h1 className="font-display text-2xl font-bold text-amora-950">{student.nome}</h1>
-          <p className="text-sm text-ink/50">{student.modalidade}</p>
+          <p className="text-sm text-ink/50">{student.modalidade}{student.periodo ? ` — ${student.periodo}` : ""}</p>
           <span className={`badge-soft mt-1 inline-block ${student.status === "inativo" ? "bg-ink/5 text-ink/40" : ""}`}>
             {student.status}
           </span>

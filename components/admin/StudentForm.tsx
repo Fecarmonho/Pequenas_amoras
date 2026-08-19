@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Guardian, PessoaAutorizada, Student, MODALIDADES } from "@/lib/types";
+import { Guardian, PessoaAutorizada, Student, MODALIDADES, PERIODOS } from "@/lib/types";
 import { processarFoto } from "@/lib/image-compress";
 import { slugify } from "@/lib/slug";
 import { onlyDigits } from "@/lib/cpf";
@@ -88,6 +88,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   const [dataNascimento, setDataNascimento] = useState(student?.dataNascimento ?? "");
   const [dataMatricula, setDataMatricula] = useState(student?.dataMatricula ?? new Date().toISOString().slice(0, 10));
   const [modalidade, setModalidade] = useState<string>(student?.modalidade ?? MODALIDADES[0]);
+  const [periodo, setPeriodo] = useState<string>(student?.periodo ?? PERIODOS[0]);
   const [status, setStatus] = useState(student?.status ?? "ativo");
 
   // Responsáveis legais (nome + parentesco) — pode ter mais de um, separado
@@ -177,6 +178,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       dataNascimento,
       dataMatricula,
       modalidade,
+      periodo: modalidade === "Contraturno Escolar" ? periodo : undefined,
       status,
       responsaveis,
       pessoasAutorizadas,
@@ -340,6 +342,16 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
                 </select>
               </label>
             </div>
+            {modalidade === "Contraturno Escolar" && (
+              <label className="block text-sm font-medium text-ink/70">
+                Período
+                <select value={periodo} onChange={(e) => setPeriodo(e.target.value)} className={inputClass}>
+                  {PERIODOS.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             {isEdit && (
               <label className="block text-sm font-medium text-ink/70">
                 Status

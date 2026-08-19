@@ -13,6 +13,7 @@ interface Payload {
   cpf?: string;
   dataMatricula: string;
   modalidade: string;
+  periodo?: string;
   status?: Student["status"];
   responsaveis?: Student["responsaveis"];
   pessoasAutorizadas: Student["pessoasAutorizadas"];
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
       cpf: body.cpf,
       dataMatricula: body.dataMatricula,
       modalidade: body.modalidade,
+      periodo: body.periodo,
       observacoes: body.observacoes,
       diaVencimento: body.diaVencimento,
       guardianIds: [],
