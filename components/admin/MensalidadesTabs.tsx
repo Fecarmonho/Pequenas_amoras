@@ -47,22 +47,13 @@ function NomeAluno({ studentId, nome }: { studentId: string | null; nome: string
   );
 }
 
-function TabelaPorAluno({
-  rows,
-  mostrarCompetencia,
-  mensagemVazio,
-}: {
-  rows: MensalidadeStudentRow[];
-  mostrarCompetencia: boolean;
-  mensagemVazio: string;
-}) {
+function TabelaVigente({ rows, mensagemVazio }: { rows: MensalidadeStudentRow[]; mensagemVazio: string }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
       <table className="w-full text-left text-sm">
         <thead className="border-b border-amora-900/8 text-xs uppercase tracking-wide text-ink/40">
           <tr>
             <th className="px-4 py-3">Estudante</th>
-            {mostrarCompetencia && <th className="px-4 py-3">Competência</th>}
             <th className="px-4 py-3">Valor</th>
             <th className="px-4 py-3">Vencimento</th>
             <th className="px-4 py-3">Status</th>
@@ -75,9 +66,6 @@ function TabelaPorAluno({
               <td className="px-4 py-3">
                 <NomeAluno studentId={r.studentId} nome={r.studentNome} />
               </td>
-              {mostrarCompetencia && (
-                <td className="px-4 py-3 text-ink/60">{r.competencia ? formatCompetencia(r.competencia) : "—"}</td>
-              )}
               <td className="px-4 py-3 text-ink/60">{r.valor !== null ? formatBRL(r.valor) : "—"}</td>
               <td className="px-4 py-3 text-ink/60">{r.vencimento ? formatDate(r.vencimento) : "—"}</td>
               <td className="px-4 py-3">
@@ -99,7 +87,7 @@ function TabelaPorAluno({
           ))}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={mostrarCompetencia ? 6 : 5} className="px-4 py-8 text-center text-ink/40">
+              <td colSpan={5} className="px-4 py-8 text-center text-ink/40">
                 {mensagemVazio}
               </td>
             </tr>
@@ -153,17 +141,45 @@ export default function MensalidadesTabs({
           <p className="mb-3 text-sm text-ink/50">
             Mensalidades de {mesAtualLabel}. Marque como recebida aqui, ou clique num estudante pra lançar uma cobrança extra.
           </p>
-          <TabelaPorAluno rows={vigente} mostrarCompetencia={false} mensagemVazio="Nenhuma mensalidade em aberto no mês." />
+          <TabelaVigente rows={vigente} mensagemVazio="Nenhuma mensalidade em aberto no mês." />
         </section>
       )}
 
       {tab === "todas" && (
         <section>
           <p className="mb-3 text-sm text-ink/50">
-            Todo estudante cadastrado, com a mensalidade em aberto mais recente de cada um (qualquer mês) — clique
-            pra ver e editar.
+            Todo estudante cadastrado, com a mensalidade em aberto mais recente de cada um (qualquer mês) — só pra
+            consulta, sem ação aqui.
           </p>
-          <TabelaPorAluno rows={todasEmAberto} mostrarCompetencia mensagemVazio="Nenhum estudante cadastrado ainda." />
+          <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-amora-900/8 text-xs uppercase tracking-wide text-ink/40">
+                <tr>
+                  <th className="px-4 py-3">Estudante</th>
+                  <th className="px-4 py-3">Valor</th>
+                  <th className="px-4 py-3">Dia de vencimento</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-amora-900/5">
+                {todasEmAberto.map((r) => (
+                  <tr key={r.studentId}>
+                    <td className="px-4 py-3">
+                      <NomeAluno studentId={r.studentId} nome={r.studentNome} />
+                    </td>
+                    <td className="px-4 py-3 text-ink/60">{r.valor !== null ? formatBRL(r.valor) : "—"}</td>
+                    <td className="px-4 py-3 text-ink/60">{r.vencimento ? formatDate(r.vencimento) : "—"}</td>
+                  </tr>
+                ))}
+                {todasEmAberto.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-ink/40">
+                      Nenhum estudante cadastrado ainda.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 
