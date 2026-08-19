@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { StatusCobrancaEfetivo } from "@/lib/types";
 import { STATUS_LABEL, STATUS_EMOJI } from "@/lib/charge-status";
@@ -47,7 +47,15 @@ function NomeAluno({ studentId, nome }: { studentId: string | null; nome: string
   );
 }
 
-function TabelaPorAluno({ rows, mostrarCompetencia }: { rows: MensalidadeStudentRow[]; mostrarCompetencia: boolean }) {
+function TabelaPorAluno({
+  rows,
+  mostrarCompetencia,
+  mensagemVazio,
+}: {
+  rows: MensalidadeStudentRow[];
+  mostrarCompetencia: boolean;
+  mensagemVazio: string;
+}) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
       <table className="w-full text-left text-sm">
@@ -92,7 +100,7 @@ function TabelaPorAluno({ rows, mostrarCompetencia }: { rows: MensalidadeStudent
           {rows.length === 0 && (
             <tr>
               <td colSpan={mostrarCompetencia ? 6 : 5} className="px-4 py-8 text-center text-ink/40">
-                Nenhum estudante cadastrado ainda.
+                {mensagemVazio}
               </td>
             </tr>
           )}
@@ -114,6 +122,14 @@ export default function MensalidadesTabs({
   historico: HistoricoRow[];
 }) {
   const [tab, setTab] = useState<TabId>("vigente");
+  const [filtroMes, setFiltroMes] = useState("todos");
+
+  const mesesHistorico = useMemo(() => {
+    const unicos = Array.from(new Set(historico.map((c) => c.competencia).filter((c): c is string => Boolean(c))));
+    return unicos.sort((a, b) => b.localeCompare(a));
+  }, [historico]);
+
+  const historicoFiltrado = filtroMes === "todos" ? historico : historico.filter((c) => c.competencia === filtroMes);
 
   return (
     <div>
@@ -137,7 +153,7 @@ export default function MensalidadesTabs({
           <p className="mb-3 text-sm text-ink/50">
             Mensalidades de {mesAtualLabel}. Marque como recebida aqui, ou clique num estudante pra lançar uma cobrança extra.
           </p>
-          <TabelaPorAluno rows={vigente} mostrarCompetencia={false} />
+          <TabelaPorAluno rows={vigente} mostrarCompetencia={false} mensagemVazio="Nenhuma mensalidade em aberto no mês." />
         </section>
       )}
 
@@ -147,12 +163,27 @@ export default function MensalidadesTabs({
             Todo estudante cadastrado, com a mensalidade em aberto mais recente de cada um (qualquer mês) — clique
             pra ver e editar.
           </p>
-          <TabelaPorAluno rows={todasEmAberto} mostrarCompetencia />
+          <TabelaPorAluno rows={todasEmAberto} mostrarCompetencia mensagemVazio="Nenhum estudante cadastrado ainda." />
         </section>
       )}
 
       {tab === "historico" && (
         <section>
+          {mesesHistorico.length > 0 && (
+            <label className="mb-3 block text-sm font-medium text-ink/70">
+              Filtrar por mês
+              <select
+                value={filtroMes}
+                onChange={(e) => setFiltroMes(e.target.value)}
+                className="mt-1 w-full max-w-xs rounded-xl border border-amora-900/15 bg-white px-4 py-2.5 text-sm text-ink focus:border-amora-600 focus:outline-none sm:w-auto"
+              >
+                <option value="todos">Todos os meses</option>
+                {mesesHistorico.map((m) => (
+                  <option key={m} value={m}>{formatCompetencia(m)}</option>
+                ))}
+              </select>
+            </label>
+          )}
           <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-amora-900/8 text-xs uppercase tracking-wide text-ink/40">
@@ -164,7 +195,7 @@ export default function MensalidadesTabs({
                 </tr>
               </thead>
               <tbody className="divide-y divide-amora-900/5">
-                {historico.map((c) => (
+                {historicoFiltrado.map((c) => (
                   <tr key={c.chargeId}>
                     <td className="px-4 py-3">
                       <NomeAluno studentId={c.studentId} nome={c.studentNome} />
@@ -174,10 +205,10 @@ export default function MensalidadesTabs({
                     <td className="px-4 py-3 text-ink/60">{c.pagoEm ? formatDate(c.pagoEm) : "—"}</td>
                   </tr>
                 ))}
-                {historico.length === 0 && (
+                {historicoFiltrado.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-ink/40">
-                      Nenhuma mensalidade paga ainda.
+                      Nenhuma mensalidade paga {filtroMes === "todos" ? "ainda" : "nesse mês"}.
                     </td>
                   </tr>
                 )}

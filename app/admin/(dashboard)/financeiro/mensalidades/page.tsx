@@ -56,11 +56,14 @@ export default async function MensalidadesPage() {
     if (!atual || c.competencia > atual.competencia!) abertaMaisRecentePorAluno.set(c.studentId, c);
   }
 
-  // As duas abas são por estudante — todo mundo cadastrado aparece, com
-  // "Sem mensalidade" quando não há cobrança em aberto pra mostrar; ao
-  // marcar como recebida, a linha correspondente passa a mostrar isso e
-  // a cobrança se move pro histórico.
-  const vigente: MensalidadeStudentRow[] = students.map((s) => linhaPorAluno(s, vigentePorAluno.get(s.id)));
+  // "Mês vigente" só lista quem tem cobrança em aberto pra esse mês — ao
+  // marcar como recebida, o aluno some daqui na hora (vai pro histórico).
+  // "Todas" continua por estudante (todo mundo cadastrado aparece, com
+  // "Sem mensalidade" quando não há nada em aberto), pra não esconder
+  // quem nunca teve mensalidade lançada.
+  const vigente: MensalidadeStudentRow[] = students
+    .filter((s) => vigentePorAluno.has(s.id))
+    .map((s) => linhaPorAluno(s, vigentePorAluno.get(s.id)));
   const todasEmAberto: MensalidadeStudentRow[] = students.map((s) => linhaPorAluno(s, abertaMaisRecentePorAluno.get(s.id)));
 
   const historico: HistoricoRow[] = charges
