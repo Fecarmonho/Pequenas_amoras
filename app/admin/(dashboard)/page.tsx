@@ -30,7 +30,6 @@ export default async function AdminDashboardPage() {
   const vencidas = charges.filter((c) => statusEfetivo(c) === "vencido");
   const recebido = pagas.reduce((soma, c) => soma + c.valor, 0);
   const emAberto = [...pendentes, ...vencidas].reduce((soma, c) => soma + c.valor, 0);
-  const diarias = charges.filter((c) => c.categoria === "extra").length;
 
   const estudantesRecentes = [...students]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -71,12 +70,9 @@ export default async function AdminDashboardPage() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard label="Estudantes ativos" value={students.filter((s) => s.status === "ativo").length} cor="roxo" />
-        <StatCard label="Mensalidades pagas" value={pagas.length} cor="verde" />
-        <StatCard label="Pendentes" value={pendentes.length} hint="🟡" cor="dourado" />
         <StatCard label="Vencidas" value={vencidas.length} hint="🔴" cor="vermelho" />
         <StatCard label="Recebido" value={formatBRL(recebido)} cor="verde" />
         <StatCard label="Em aberto" value={formatBRL(emAberto)} cor="rosa" />
-        <StatCard label="Diárias lançadas" value={diarias} cor="roxo" />
         <StatCard label="Avisos ativos" value={avisos.filter((a) => a.ativo).length} cor="rosa" />
       </div>
 
