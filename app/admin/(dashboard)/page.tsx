@@ -11,6 +11,7 @@ import { buildWhatsappLink, numeroWhatsapp } from "@/lib/whatsapp";
 import StatCard from "@/components/admin/StatCard";
 import MarcarRecebidoButton from "@/components/admin/MarcarRecebidoButton";
 import { FaWhatsapp } from "react-icons/fa6";
+import { Charge } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -39,15 +40,38 @@ export default async function AdminDashboardPage() {
   // cobrança pelo WhatsApp direto daqui, usando o telefone cadastrado no
   // responsável do aluno.
   const hojeStr = new Date().toISOString().slice(0, 10);
+  const chargesHoje = charges.filter((c) => c.status === "pendente" && c.vencimento === hojeStr);
   const vencendoHoje = await Promise.all(
-    charges
-      .filter((c) => c.status === "pendente" && c.vencimento === hojeStr)
-      .map(async (charge) => {
-        const student = students.find((s) => s.id === charge.studentId);
-        const guardian = student?.guardianIds[0] ? await getGuardianById(student.guardianIds[0]) : null;
-        return { charge, student, guardian };
-      })
+    chargesHoje.map(async (charge) => {
+      const student = students.find((s) => s.id === charge.studentId);
+      const guardian = student?.guardianIds[0] ? await getGuardianById(student.guardianIds[0]) : null;
+      return { charge, student, guardian };
+    })
   );
+
+  // Quando o aluno tem mais de uma cobrança vencendo no mesmo dia (ex:
+  // mensalidade + uma diária), a mensagem do WhatsApp fala das duas juntas
+  // em vez de mencionar só a que gerou aquela linha específica — a diária
+  // sempre acompanha a mensalidade na cobrança de verdade.
+  const grupoPorAluno = new Map<string, { total: number; temMensalidade: boolean; count: number }>();
+  for (const c of chargesHoje) {
+    const atual = grupoPorAluno.get(c.studentId) ?? { total: 0, temMensalidade: false, count: 0 };
+    atual.total += c.valor;
+    atual.count += 1;
+    if (c.categoria === "mensalidade") atual.temMensalidade = true;
+    grupoPorAluno.set(c.studentId, atual);
+  }
+
+  function mensagemCobranca(charge: Charge, nomeAluno: string): string {
+    const grupo = grupoPorAluno.get(charge.studentId)!;
+    const pix = config.chavePix ? ` Chave PIX pra pagamento: ${config.chavePix}.` : "";
+    if (grupo.count > 1) {
+      const descricao = grupo.temMensalidade ? "mensalidade + cobranças extras" : "cobranças extras";
+      return `Olá! Passando pra lembrar que a ${descricao} de ${nomeAluno} (${formatBRL(grupo.total)}) vencem hoje.${pix} Qualquer dúvida, estamos à disposição 💜 — Pequenas Amoras`;
+    }
+    const descricao = charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao;
+    return `Olá! Passando pra lembrar que a cobrança "${descricao}" de ${nomeAluno} (${formatBRL(charge.valor)}) vence hoje.${pix} Qualquer dúvida, estamos à disposição 💜 — Pequenas Amoras`;
+  }
 
   return (
     <div>
@@ -72,9 +96,7 @@ export default async function AdminDashboardPage() {
           <ul className="mt-3 divide-y divide-amora-900/5">
             {vencendoHoje.map(({ charge, student, guardian }) => {
               const descricao = charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao;
-              const mensagem = `Olá! Passando pra lembrar que a cobrança "${descricao}" de ${student?.nome ?? "aluno"} (${formatBRL(charge.valor)}) vence hoje.${
-                config.chavePix ? ` Chave PIX pra pagamento: ${config.chavePix}.` : ""
-              } Qualquer dúvida, estamos à disposição 💜 — Pequenas Amoras`;
+              const mensagem = mensagemCobranca(charge, student?.nome ?? "aluno");
               return (
                 <li key={charge.id} className="flex items-center justify-between gap-3 py-3">
                   <div className="min-w-0">
