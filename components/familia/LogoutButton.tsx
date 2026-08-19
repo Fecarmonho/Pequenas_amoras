@@ -11,7 +11,7 @@ export default function LogoutButton() {
   async function handleLogout() {
     await signOut(auth).catch(() => {});
     await fetch("/api/familia/session", { method: "DELETE" });
-    router.push("/familia/login");
+    router.push("/");
     router.refresh();
   }
 
