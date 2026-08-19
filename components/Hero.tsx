@@ -10,9 +10,15 @@ export default function Hero() {
         <div className="relative mx-auto w-44 sm:w-64 lg:order-2 lg:w-full lg:max-w-sm">
           <div className="absolute inset-0 -z-10 rounded-full bg-rosa-500/20 blur-3xl" aria-hidden="true" />
           <img
+            src="/brand/astronautas-voando.png"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-10 -top-8 hidden w-28 animate-float-slower opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:block sm:-left-16 sm:-top-12 sm:w-44 lg:-left-20 lg:-top-14 lg:w-56"
+          />
+          <img
             src="/brand/logo-badge.png"
             alt="Astronautas da Pequenas Amoras flutuando entre estrelas"
-            className="w-full animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)]"
+            className="relative z-10 w-full animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)]"
           />
         </div>
 
