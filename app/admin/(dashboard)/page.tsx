@@ -9,6 +9,7 @@ import { statusEfetivo } from "@/lib/charge-status";
 import { formatBRL, formatCompetencia } from "@/lib/format";
 import { buildWhatsappLink, numeroWhatsapp } from "@/lib/whatsapp";
 import StatCard from "@/components/admin/StatCard";
+import PrivacyToggleButton from "@/components/admin/PrivacyToggleButton";
 import MarcarRecebidoButton from "@/components/admin/MarcarRecebidoButton";
 import { FaWhatsapp } from "react-icons/fa6";
 import { Charge } from "@/lib/types";
@@ -66,13 +67,16 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-6 font-display text-2xl font-bold text-amora-950">Dashboard</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-2xl font-bold text-amora-950">Dashboard</h1>
+        <PrivacyToggleButton />
+      </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard label="Estudantes ativos" value={students.filter((s) => s.status === "ativo").length} cor="roxo" />
         <StatCard label="Vencidas" value={vencidas.length} hint="🔴" cor="vermelho" />
-        <StatCard label="Recebido" value={formatBRL(recebido)} cor="verde" />
-        <StatCard label="Em aberto" value={formatBRL(emAberto)} cor="rosa" />
+        <StatCard label="Recebido" value={formatBRL(recebido)} cor="verde" sensivel />
+        <StatCard label="Em aberto" value={formatBRL(emAberto)} cor="rosa" sensivel />
         <StatCard label="Avisos ativos" value={avisos.filter((a) => a.ativo).length} cor="rosa" />
       </div>
 
