@@ -5,6 +5,15 @@ import { getConfiguracoes } from "@/lib/config-db";
 import { buildWhatsappLink } from "@/lib/whatsapp";
 import BerryIcon from "@/components/decor/BerryIcon";
 
+/** Evita a última parte do endereço (ex: "- SP") quebrar sozinha numa
+ * linha isolada no celular — junta só o trecho depois da última vírgula
+ * (cidade + UF) com espaço não-quebrável, sem mexer no resto do texto. */
+function semQuebraNoFinal(endereco: string) {
+  const ultimaVirgula = endereco.lastIndexOf(",");
+  if (ultimaVirgula === -1) return endereco;
+  return endereco.slice(0, ultimaVirgula + 1) + endereco.slice(ultimaVirgula + 1).replace(/ /g, " ");
+}
+
 export default async function SiteFooter() {
   const config = await getConfiguracoes();
   const ano = new Date().getFullYear();
@@ -53,7 +62,7 @@ export default async function SiteFooter() {
             <p className="font-display text-sm font-bold uppercase tracking-wide text-rosa-300">Horário</p>
             <div className="mt-4 flex flex-col gap-3 text-sm text-white/70">
               <p className="flex items-start gap-2">
-                <HiOutlineMapPin className="mt-0.5 h-4 w-4 shrink-0" /> {config.endereco}
+                <HiOutlineMapPin className="mt-0.5 h-4 w-4 shrink-0" /> {semQuebraNoFinal(config.endereco)}
               </p>
               <p className="flex items-start gap-2">
                 <HiOutlineClock className="mt-0.5 h-4 w-4 shrink-0" /> {config.horarioAtendimento}

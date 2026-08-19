@@ -62,7 +62,10 @@
      dá pra sobrescrever via box-shadow (truque padrão), não background. */
   input.bg-white\/5:-webkit-autofill,
   input.bg-white\/5:-webkit-autofill:hover,
-  input.bg-white\/5:-webkit-autofill:focus {
+  input.bg-white\/5:-webkit-autofill:focus,
+  input.bg-transparent:-webkit-autofill,
+  input.bg-transparent:-webkit-autofill:hover,
+  input.bg-transparent:-webkit-autofill:focus {
     -webkit-text-fill-color: #fff;
     -webkit-box-shadow: 0 0 0 1000px rgba(20, 8, 41, 0.6) inset;
     box-shadow: 0 0 0 1000px rgba(20, 8, 41, 0.6) inset;
