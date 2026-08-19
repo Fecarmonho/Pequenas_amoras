@@ -8,15 +8,19 @@ export default async function ContactCta() {
 
   return (
     <section id="contato" className="mx-auto max-w-6xl px-4 pb-16 sm:pb-20">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rosa-100 via-white to-amora-100 shadow-glow">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rosa-100 via-white to-amora-100 p-6 shadow-glow sm:p-10">
         <BerryIcon className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rotate-12 opacity-60 sm:h-36 sm:w-36" />
 
-        <div className="relative grid gap-8 p-6 sm:p-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-stretch lg:gap-0 lg:p-0">
-          <div className="mx-auto aspect-[4/3] w-full max-w-[220px] overflow-hidden rounded-3xl shadow-card sm:max-w-[260px] lg:mx-0 lg:aspect-auto lg:max-w-none lg:rounded-none lg:rounded-l-3xl">
-            <img src="/brand/contato-foto.png" alt="Criança da Pequenas Amoras brincando" className="h-full w-full object-cover object-top" />
+        <div className="relative flex flex-col items-center gap-6 lg:flex-row lg:justify-center lg:gap-10">
+          <div className="aspect-[3/4] w-32 shrink-0 overflow-hidden rounded-3xl shadow-card sm:w-40 lg:w-48">
+            <img
+              src="/brand/contato-foto.png"
+              alt="Criança da Pequenas Amoras brincando"
+              className="h-full w-full object-cover object-top"
+            />
           </div>
 
-          <div className="text-center lg:flex lg:flex-col lg:justify-center lg:px-12 lg:py-10 lg:text-left">
+          <div className="text-center lg:max-w-lg lg:text-left">
             <BerryIcon className="mx-auto h-9 w-9 lg:mx-0" />
             <h2 className="mt-4 font-display text-2xl font-bold text-amora-950 sm:text-3xl">
               Vem fazer parte da família {config.nomeEscola}
