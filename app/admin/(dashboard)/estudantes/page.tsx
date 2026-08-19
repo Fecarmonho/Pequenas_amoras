@@ -2,24 +2,32 @@ import Link from "next/link";
 import { getAllStudents } from "@/lib/students-db";
 import { getAllGuardians } from "@/lib/guardians-db";
 import DeleteButton from "@/components/admin/DeleteButton";
+import DownloadStudentsPdfButton from "@/components/admin/DownloadStudentsPdfButton";
 import { HiOutlinePlus, HiOutlineEye, HiOutlinePencil } from "react-icons/hi2";
 
 export const dynamic = "force-dynamic";
 
 export default async function EstudantesPage() {
+  // getAllStudents já busca ordenado por nome (orderBy("nome") no
+  // Firestore) — a lista sempre sai em ordem alfabética.
   const [students, guardians] = await Promise.all([getAllStudents(), getAllGuardians()]);
   const guardiansById = new Map(guardians.map((g) => [g.id, g]));
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-bold text-amora-950">Estudantes</h1>
-        <Link
-          href="/admin/estudantes/novo"
-          className="btn-primary flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold text-white"
-        >
-          <HiOutlinePlus className="h-4 w-4" /> Novo estudante
-        </Link>
+        <div className="flex items-center gap-2">
+          <DownloadStudentsPdfButton
+            students={students.map((s) => ({ nome: s.nome, modalidade: s.modalidade, periodo: s.periodo, status: s.status }))}
+          />
+          <Link
+            href="/admin/estudantes/novo"
+            className="btn-primary flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold text-white"
+          >
+            <HiOutlinePlus className="h-4 w-4" /> Novo estudante
+          </Link>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-amora-900/8 bg-white shadow-card">
@@ -28,6 +36,7 @@ export default async function EstudantesPage() {
             <tr>
               <th className="px-4 py-3">Nome</th>
               <th className="px-4 py-3">Modalidade</th>
+              <th className="px-4 py-3">Turno</th>
               <th className="px-4 py-3">Responsável</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3" />
@@ -42,6 +51,7 @@ export default async function EstudantesPage() {
                   </Link>
                 </td>
                 <td className="px-4 py-3 text-ink/60">{s.modalidade}</td>
+                <td className="px-4 py-3 text-ink/60">{s.periodo || "—"}</td>
                 <td className="px-4 py-3 text-ink/60">
                   {s.guardianIds.map((id) => guardiansById.get(id)?.nome).filter(Boolean).join(", ") || "—"}
                 </td>
@@ -71,7 +81,7 @@ export default async function EstudantesPage() {
             ))}
             {students.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-ink/40">
+                <td colSpan={6} className="px-4 py-8 text-center text-ink/40">
                   Nenhum estudante cadastrado ainda.
                 </td>
               </tr>
