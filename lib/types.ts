@@ -86,11 +86,7 @@ export interface Banner {
   subtitulo?: string;
   descricao?: string;
   data?: string;
-  /** Imagem principal — usada em telas grandes e como fallback no celular. */
   imagem: string;
-  /** Recorte opcional pensado pro formato mais alto/estreito do celular
-   * (o objeto principal costuma ficar cortado usando só a imagem larga). */
-  imagemMobile?: string;
   botaoTexto?: string;
   botaoLink?: string;
   ordem: number;

@@ -10,8 +10,6 @@ const inputClass =
 export default function BannerForm() {
   const router = useRouter();
   const [imagem, setImagem] = useState<string | null>(null);
-  const [imagemMobile, setImagemMobile] = useState<string | null>(null);
-  const [processandoMobile, setProcessandoMobile] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [subtitulo, setSubtitulo] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -41,25 +39,6 @@ export default function BannerForm() {
     }
   }
 
-  async function handleImagemMobileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setProcessandoMobile(true);
-    setError(null);
-    try {
-      const blob = await upload(file.name, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/banners/upload",
-      });
-      setImagemMobile(blob.url);
-    } catch (err) {
-      setError("Não foi possível enviar a imagem. Verifique se o Vercel Blob está configurado.");
-    } finally {
-      setProcessandoMobile(false);
-    }
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -75,7 +54,6 @@ export default function BannerForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imagem,
-          imagemMobile: imagemMobile || undefined,
           titulo: titulo || undefined,
           subtitulo: subtitulo || undefined,
           descricao: descricao || undefined,
@@ -86,7 +64,6 @@ export default function BannerForm() {
       });
       if (!response.ok) throw new Error("Não foi possível salvar o aviso.");
       setImagem(null);
-      setImagemMobile(null);
       setTitulo("");
       setSubtitulo("");
       setDescricao("");
@@ -117,25 +94,7 @@ export default function BannerForm() {
           </label>
         </div>
         <p className="mt-1.5 text-xs text-ink/40">
-          Ideal: 1920×1080px (paisagem, formato 16:9), com o assunto principal centralizado.
-        </p>
-      </div>
-
-      <div>
-        <span className="block text-sm font-medium text-ink/70">Recorte pro celular (opcional)</span>
-        <div className="mt-1 flex items-center gap-4">
-          {imagemMobile ? (
-            <img src={imagemMobile} alt="Prévia" className="h-20 w-16 rounded-lg border border-ink/10 object-cover" />
-          ) : (
-            <div className="flex h-20 w-16 items-center justify-center rounded-lg border border-dashed border-ink/15 text-[10px] text-ink/30">Sem imagem</div>
-          )}
-          <label className="cursor-pointer rounded-full border border-amora-900/15 px-4 py-2 text-sm font-semibold text-ink/70 hover:border-amora-600">
-            {processandoMobile ? "Enviando..." : imagemMobile ? "Trocar" : "Escolher"}
-            <input type="file" accept="image/*" onChange={handleImagemMobileChange} disabled={processandoMobile} className="hidden" />
-          </label>
-        </div>
-        <p className="mt-1.5 text-xs text-ink/40">
-          Ideal: 1200×900px (formato 4:3). Sem isso, o celular usa a imagem de cima cortada nas laterais.
+          Ideal: 1536×1024px (proporção 3:2) — funciona bem tanto no celular quanto no computador.
         </p>
       </div>
 
