@@ -14,7 +14,11 @@ export async function getFamilySession() {
   if (!cookie) return null;
 
   try {
-    const session = await adminAuth.verifySessionCookie(cookie, true);
+    // Sem checkRevoked: mesmo motivo do /api/familia/session — checar
+    // revogação aqui rejeitaria sessões válidas por granularidade de
+    // segundo logo após trocar a senha, sem trazer benefício real (não
+    // temos um "sair de todos os aparelhos").
+    const session = await adminAuth.verifySessionCookie(cookie);
     const guardian = await getGuardianByUid(session.uid);
     return guardian ? { session, guardian } : null;
   } catch {

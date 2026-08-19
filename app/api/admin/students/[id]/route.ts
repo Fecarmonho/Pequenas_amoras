@@ -42,7 +42,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     await updateStudent(params.id, studentData);
 
-    if (mensalidadeInicial?.valor && mensalidadeInicial.vencimento) {
+    if (typeof mensalidadeInicial?.valor === "number" && mensalidadeInicial.vencimento) {
       await createCharge({
         studentId: params.id,
         categoria: "mensalidade",

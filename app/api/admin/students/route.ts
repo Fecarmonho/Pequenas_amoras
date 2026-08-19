@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       credenciais = { email, link, telefone: body.responsavel.telefone };
     }
 
-    if (body.mensalidadeInicial?.valor && body.mensalidadeInicial.vencimento) {
+    if (typeof body.mensalidadeInicial?.valor === "number" && body.mensalidadeInicial.vencimento) {
       await createCharge({
         studentId: created.id,
         categoria: "mensalidade",

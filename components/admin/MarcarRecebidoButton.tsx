@@ -13,12 +13,18 @@ export default function MarcarRecebidoButton({ chargeId }: { chargeId: string })
   async function handleClick() {
     setLoading(true);
     try {
-      await fetch(`/api/admin/charges/${chargeId}`, {
+      const response = await fetch(`/api/admin/charges/${chargeId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "pago" }),
       });
+      if (!response.ok) {
+        alert("Não foi possível marcar como recebido. Tente novamente — se persistir, faça login de novo.");
+        return;
+      }
       router.refresh();
+    } catch {
+      alert("Não foi possível marcar como recebido. Verifique sua conexão e tente de novo.");
     } finally {
       setLoading(false);
     }

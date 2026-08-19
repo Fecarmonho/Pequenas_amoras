@@ -6,18 +6,26 @@ export default function ChavePixConfig({ chavePixInicial }: { chavePixInicial?: 
   const [chavePix, setChavePix] = useState(chavePixInicial ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [erro, setErro] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setSaved(false);
+    setErro(false);
     try {
-      await fetch("/api/admin/configuracoes", {
+      const response = await fetch("/api/admin/configuracoes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chavePix }),
       });
+      if (!response.ok) {
+        setErro(true);
+        return;
+      }
       setSaved(true);
+    } catch {
+      setErro(true);
     } finally {
       setSaving(false);
     }
@@ -44,6 +52,7 @@ export default function ChavePixConfig({ chavePixInicial }: { chavePixInicial?: 
       >
         {saving ? "Salvando..." : saved ? "Salvo ✓" : "Salvar"}
       </button>
+      {erro && <p className="text-sm font-medium text-rosa-600 sm:basis-full">Não foi possível salvar. Tente novamente.</p>}
     </form>
   );
 }

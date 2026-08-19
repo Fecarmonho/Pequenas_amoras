@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const charge = (await request.json()) as Omit<Charge, "id" | "createdAt">;
-  if (!charge.studentId || !charge.descricao || !charge.valor || !charge.vencimento) {
+  if (!charge.studentId || !charge.descricao || typeof charge.valor !== "number" || !charge.vencimento) {
     return NextResponse.json({ error: "Preencha os campos obrigatórios." }, { status: 400 });
   }
 

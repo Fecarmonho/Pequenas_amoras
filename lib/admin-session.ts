@@ -14,7 +14,11 @@ export async function getAdminSession() {
   if (!cookie) return null;
 
   try {
-    const session = await adminAuth.verifySessionCookie(cookie, true);
+    // Sem checkRevoked: mesmo motivo do /api/admin/session — checar
+    // revogação aqui rejeitaria sessões válidas por granularidade de
+    // segundo logo após trocar a senha, sem trazer benefício real (não
+    // temos um "sair de todos os aparelhos").
+    const session = await adminAuth.verifySessionCookie(cookie);
     const autorizado = await isAdmin(session.uid);
     return autorizado ? session : null;
   } catch {

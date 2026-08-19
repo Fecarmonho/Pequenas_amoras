@@ -11,6 +11,7 @@ export default function ConfiguracoesForm({ config }: { config: Configuracoes })
   const [form, setForm] = useState(config);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [erro, setErro] = useState(false);
   const [processandoFoto, setProcessandoFoto] = useState(false);
 
   function set<K extends keyof Configuracoes>(key: K, value: Configuracoes[K]) {
@@ -33,13 +34,20 @@ export default function ConfiguracoesForm({ config }: { config: Configuracoes })
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+    setErro(false);
     try {
-      await fetch("/api/admin/configuracoes", {
+      const response = await fetch("/api/admin/configuracoes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      if (!response.ok) {
+        setErro(true);
+        return;
+      }
       setSaved(true);
+    } catch {
+      setErro(true);
     } finally {
       setSaving(false);
     }
@@ -121,6 +129,7 @@ export default function ConfiguracoesForm({ config }: { config: Configuracoes })
       </div>
 
       {saved && <p className="text-sm font-medium text-folha">Salvo com sucesso ✓</p>}
+      {erro && <p className="text-sm font-medium text-rosa-600">Não foi possível salvar. Tente novamente — se persistir, faça login de novo.</p>}
 
       <button type="submit" disabled={saving} className="btn-primary rounded-full px-6 py-3 font-display font-bold text-white disabled:opacity-60">
         {saving ? "Salvando..." : "Salvar configurações"}

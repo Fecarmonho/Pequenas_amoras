@@ -12,8 +12,14 @@ export default function DeleteButton({ url, confirmMessage }: { url: string; con
     if (!confirm(confirmMessage)) return;
     setLoading(true);
     try {
-      await fetch(url, { method: "DELETE" });
+      const response = await fetch(url, { method: "DELETE" });
+      if (!response.ok) {
+        alert("Não foi possível excluir. Tente novamente — se persistir, faça login de novo.");
+        return;
+      }
       router.refresh();
+    } catch {
+      alert("Não foi possível excluir. Verifique sua conexão e tente de novo.");
     } finally {
       setLoading(false);
     }
