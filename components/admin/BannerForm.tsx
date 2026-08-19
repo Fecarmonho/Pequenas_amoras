@@ -135,7 +135,7 @@ export default function BannerForm() {
           </label>
         </div>
         <p className="mt-1.5 text-xs text-ink/40">
-          Ideal: 1080×1350px (retrato, formato 4:5). Sem isso, o celular usa a imagem de cima cortada nas laterais.
+          Ideal: 1200×900px (formato 4:3). Sem isso, o celular usa a imagem de cima cortada nas laterais.
         </p>
       </div>
 

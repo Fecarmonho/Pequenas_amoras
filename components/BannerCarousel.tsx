@@ -61,7 +61,7 @@ export default function BannerCarousel({ slides }: { slides: CarouselSlide[] }) 
           className="scrollbar-none flex snap-x snap-mandatory overflow-x-auto rounded-3xl"
         >
           {slides.map((slide) => (
-            <div key={slide.id} className="relative aspect-[4/5] w-full shrink-0 snap-start sm:aspect-[16/9]">
+            <div key={slide.id} className="relative aspect-[4/3] w-full shrink-0 snap-start sm:aspect-[16/9]">
               <picture>
                 {slide.imagemMobile && <source media="(max-width: 639px)" srcSet={slide.imagemMobile} />}
                 <img src={slide.imagem} alt="" className="absolute inset-0 h-full w-full object-cover" />
