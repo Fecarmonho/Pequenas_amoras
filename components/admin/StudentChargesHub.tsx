@@ -150,14 +150,12 @@ export default function StudentChargesHub({
         {/* Centralização por text-align (não flex) — o html2canvas nem
             sempre reproduz fielmente o align-items do flexbox. */}
         <div className="hero-space hero-space-gradient px-6 py-7 text-center">
-          <img src="/brand/logo-badge.png" alt="Pequenas Amoras" className="mx-auto h-14 w-14 rounded-full" />
-          <p className="mt-2 font-display text-base font-bold leading-normal text-white">Pequenas Amoras</p>
-          <p className="mt-0.5 text-xs leading-normal text-white/60">Contraturno Escolar e Recreação Infantil</p>
+          <img src="/brand/recibo-header.png" alt="Amoras — Recibo de mensalidade" className="mx-auto h-14 w-auto sm:h-16" />
           <p
-            className="mx-auto mt-2 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wide text-rosa-200"
+            className="mx-auto mt-3 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wide text-rosa-200"
             style={{ display: "table" }}
           >
-            Recibo de mensalidade — {student.nome}
+            {student.nome}
           </p>
         </div>
 
