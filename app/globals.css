@@ -24,13 +24,28 @@
     @apply bg-amora-900 text-white;
   }
 
+  /* background-image (não o atalho "background") — o atalho zera o
+     background-color que .hero-space definiu, fazendo o roxo sumir e
+     cair no fundo quase-branco do body por trás (bug real, deixava o
+     texto branco do hero ilegível). */
   .hero-space-gradient {
-    background: radial-gradient(ellipse 120% 80% at 50% -10%, rgba(171, 124, 224, 0.35), transparent 60%),
+    background-image: radial-gradient(ellipse 120% 80% at 50% -10%, rgba(171, 124, 224, 0.35), transparent 60%),
       linear-gradient(160deg, #3b1666 0%, #2a0f47 55%, #3d1660 100%);
   }
 
-  /* Campo de estrelinhas sutil no fundo roxo — pontinhos, não poluir. */
+  /* Campo de estrelinhas sutil no fundo roxo — pontinhos, não poluir.
+     Via ::before (não background-image direto no elemento) porque esse
+     mesmo elemento costuma já ter um background-image próprio (ex:
+     .hero-space-gradient) — duas classes brigando pela mesma propriedade
+     faziam uma apagar a outra por completo, em vez de somar. */
   .starfield {
+    position: relative;
+  }
+  .starfield::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
     background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1.5px),
       radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1.5px);
     background-size: 140px 140px, 90px 90px;

@@ -6,7 +6,7 @@ import { HiChevronLeft, HiChevronRight } from "react-icons/hi2";
 
 export interface CarouselSlide {
   id: string;
-  titulo: string;
+  titulo?: string;
   subtitulo?: string;
   descricao?: string;
   data?: string;
@@ -70,9 +70,11 @@ export default function BannerCarousel({ slides }: { slides: CarouselSlide[] }) 
                     {slide.data}
                   </span>
                 )}
-                <h3 className="font-display text-2xl font-bold leading-tight text-white drop-shadow sm:text-4xl">
-                  {slide.titulo}
-                </h3>
+                {slide.titulo && (
+                  <h3 className="font-display text-2xl font-bold leading-tight text-white drop-shadow sm:text-4xl">
+                    {slide.titulo}
+                  </h3>
+                )}
                 {slide.subtitulo && (
                   <p className="mt-2 max-w-md text-sm text-white/85 sm:text-base">{slide.subtitulo}</p>
                 )}

@@ -82,7 +82,7 @@ export interface Charge {
 
 export interface Banner {
   id: string;
-  titulo: string;
+  titulo?: string;
   subtitulo?: string;
   descricao?: string;
   data?: string;

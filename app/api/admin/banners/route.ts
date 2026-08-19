@@ -7,8 +7,8 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const data = await request.json();
-  if (!data.titulo || !data.imagem) {
-    return NextResponse.json({ error: "Preencha o título e a imagem." }, { status: 400 });
+  if (!data.imagem) {
+    return NextResponse.json({ error: "Envie uma imagem para o slide." }, { status: 400 });
   }
 
   const existentes = await getAllBanners();

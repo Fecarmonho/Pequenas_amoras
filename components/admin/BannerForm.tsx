@@ -46,10 +46,6 @@ export default function BannerForm() {
       setError("Envie uma imagem para o slide.");
       return;
     }
-    if (!titulo) {
-      setError("Preencha o título do slide.");
-      return;
-    }
 
     setSaving(true);
     try {
@@ -58,7 +54,7 @@ export default function BannerForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imagem,
-          titulo,
+          titulo: titulo || undefined,
           subtitulo: subtitulo || undefined,
           descricao: descricao || undefined,
           data: data || undefined,
@@ -105,8 +101,8 @@ export default function BannerForm() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="text-sm font-medium text-ink/70">
-          Título
-          <input required value={titulo} onChange={(e) => setTitulo(e.target.value)} className={inputClass} placeholder="Semana da Diversão" />
+          Título (opcional)
+          <input value={titulo} onChange={(e) => setTitulo(e.target.value)} className={inputClass} placeholder="Semana da Diversão" />
         </label>
         <label className="text-sm font-medium text-ink/70">
           Data (opcional)

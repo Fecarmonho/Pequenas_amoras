@@ -14,14 +14,21 @@ export default function Hero() {
             alt="Astronautas da Pequenas Amoras flutuando entre estrelas"
             className="w-full animate-float-slow drop-shadow-[0_30px_60px_rgba(93,38,163,0.55)]"
           />
-          {/* left-full: começa exatamente na borda direita do badge, então
-              nunca sobrepõe ele, não importa o tamanho da tela — sem
-              precisar mexer no tamanho/posição do badge em si. */}
+          {/* left-full / right-full: começam exatamente na borda do badge,
+              então nunca sobrepõem ele, não importa o tamanho da tela —
+              sem precisar mexer no tamanho/posição do badge em si. Um de
+              cada lado (o da esquerda espelhado, "vindo" na direção do badge). */}
           <img
             src="/brand/astronautas-voando.png"
             alt=""
             aria-hidden="true"
             className="pointer-events-none absolute left-full top-1/2 ml-1 w-14 -translate-y-1/2 animate-float-slower opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:ml-3 sm:w-24 lg:ml-4 lg:w-32"
+          />
+          <img
+            src="/brand/astronautas-voando.png"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute right-full top-1/2 mr-1 w-14 -translate-y-1/2 scale-x-[-1] animate-float-slow opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:mr-3 sm:w-24 lg:mr-4 lg:w-32"
           />
         </div>
 
@@ -44,7 +51,7 @@ export default function Hero() {
             que a sua família merece.
           </p>
 
-          <div className="mt-3 flex flex-col items-center gap-2 sm:mt-8 sm:flex-row sm:justify-center sm:gap-3 lg:justify-start">
+          <div className="mt-6 flex flex-col items-center gap-2 sm:mt-8 sm:flex-row sm:justify-center sm:gap-3 lg:justify-start">
             <Link href="/#sobre" className="btn-primary shine w-full rounded-full px-7 py-2.5 text-center font-display font-bold text-white sm:w-auto sm:py-3.5">
               Conheça a Pequenas Amoras
             </Link>
