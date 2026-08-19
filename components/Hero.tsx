@@ -16,20 +16,20 @@ export default function Hero() {
           />
           {/* left-full / right-full: começam exatamente na borda do badge,
               então nunca sobrepõem ele, não importa o tamanho da tela —
-              sem precisar mexer no tamanho/posição do badge em si. Um de
-              cada lado (o da esquerda espelhado, "vindo" na direção do
-              badge), e cada um flutua num sentido — um sobe, outro desce. */}
+              sem precisar mexer no tamanho/posição do badge em si. Um em
+              cima (lado direito), outro embaixo (lado esquerdo, espelhado),
+              cada um flutuando normal (sobe e desce) na sua posição. */}
           <img
             src="/brand/astronautas-voando.png"
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute left-full top-1/2 ml-1 w-14 -translate-y-1/2 animate-float-down opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:ml-3 sm:w-24 lg:ml-4 lg:w-32"
+            className="pointer-events-none absolute left-full top-0 ml-1 w-14 animate-float-slower opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:ml-3 sm:w-24 lg:ml-4 lg:w-32"
           />
           <img
             src="/brand/astronautas-voando.png"
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute right-full top-1/2 mr-1 w-14 -translate-y-1/2 scale-x-[-1] animate-float-slow opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:mr-3 sm:w-24 lg:mr-4 lg:w-32"
+            className="pointer-events-none absolute bottom-0 right-full mr-1 w-14 scale-x-[-1] animate-float-slow opacity-90 drop-shadow-[0_20px_40px_rgba(93,38,163,0.5)] sm:mr-3 sm:w-24 lg:mr-4 lg:w-32"
           />
         </div>
 
