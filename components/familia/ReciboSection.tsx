@@ -44,7 +44,7 @@ export default function ReciboSection({
     <div className="flex flex-col gap-4">
       <div ref={reciboRef} className="overflow-hidden rounded-2xl border border-amora-900/8 bg-white shadow-card">
         <div className="bg-white px-6 py-7 text-center">
-          <img src="/brand/recibo-header.png" alt="Amoras — Recibo de mensalidade" className="mx-auto h-14 w-auto sm:h-16" />
+          <img src="/brand/recibo-header.png" alt="Amoras — Recibo de mensalidade" className="mx-auto h-20 w-auto sm:h-28" />
           <p
             className="mx-auto mt-3 rounded-full bg-amora-100 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wide text-amora-700"
             style={{ display: "table" }}
