@@ -91,15 +91,15 @@ export default async function AdminDashboardPage() {
               const total = charge.valor + extrasPendentes.reduce((soma, e) => soma + e.valor, 0);
               const mensagem = mensagemCobranca(charge, extrasPendentes, student?.nome ?? "aluno");
               return (
-                <li key={charge.id} className="flex items-center justify-between gap-3 py-3">
+                <li key={charge.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-ink">{student?.nome ?? "Aluno removido"}</p>
-                    <p className="truncate text-xs text-ink/40">
+                    <p className="text-sm font-medium text-ink">{student?.nome ?? "Aluno removido"}</p>
+                    <p className="text-xs text-ink/40">
                       {descricao} — {formatBRL(total)}
                       {extrasPendentes.length > 0 && ` (mensalidade + ${extrasPendentes.length} extra${extrasPendentes.length > 1 ? "s" : ""})`}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                     <MarcarRecebidoButton chargeId={charge.id} />
                     {guardian?.telefone ? (
                       <a

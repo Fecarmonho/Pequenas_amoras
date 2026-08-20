@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin-session";
 import { createStudent, updateStudent } from "@/lib/students-db";
 import { criarAcessoFamilia } from "@/lib/guardian-access";
-import { createCharge } from "@/lib/charges-db";
 import { logAudit } from "@/lib/audit-db";
 import { Student } from "@/lib/types";
 
@@ -19,7 +18,7 @@ interface Payload {
   pessoasAutorizadas: Student["pessoasAutorizadas"];
   observacoes?: string;
   responsavel?: { nome: string; telefone: string; usuario?: string };
-  mensalidadeInicial?: { valor: number; vencimento: string };
+  valorMensalidade?: number;
   diaVencimento?: number;
 }
 
@@ -47,6 +46,7 @@ export async function POST(request: NextRequest) {
       periodo: body.periodo,
       observacoes: body.observacoes,
       diaVencimento: body.diaVencimento,
+      valorMensalidade: body.valorMensalidade,
       guardianIds: [],
       responsaveis: body.responsaveis ?? [],
       pessoasAutorizadas: body.pessoasAutorizadas ?? [],
@@ -68,20 +68,6 @@ export async function POST(request: NextRequest) {
       });
       await updateStudent(created.id, { guardianIds: [guardianId] });
       credenciais = { email, link, telefone: body.responsavel.telefone };
-    }
-
-    if (typeof body.mensalidadeInicial?.valor === "number" && body.mensalidadeInicial.vencimento) {
-      await createCharge({
-        studentId: created.id,
-        categoria: "mensalidade",
-        tipo: "mensalidade",
-        competencia: body.mensalidadeInicial.vencimento.slice(0, 7),
-        descricao: "Mensalidade",
-        valor: body.mensalidadeInicial.valor,
-        vencimento: body.mensalidadeInicial.vencimento,
-        status: "pendente",
-        createdAt: now,
-      });
     }
 
     await logAudit({ actorEmail: session.email ?? "admin", acao: "criar", entidade: "student", entidadeId: created.id });

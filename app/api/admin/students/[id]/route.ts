@@ -3,7 +3,7 @@ import { getAdminSession } from "@/lib/admin-session";
 import { updateStudent, deleteStudent, getStudentById } from "@/lib/students-db";
 import { getGuardianById, updateGuardian, deleteGuardian } from "@/lib/guardians-db";
 import { criarAcessoFamilia } from "@/lib/guardian-access";
-import { createCharge, getChargesByStudent, deleteCharge } from "@/lib/charges-db";
+import { getChargesByStudent, deleteCharge } from "@/lib/charges-db";
 import { adminAuth } from "@/lib/firebase-admin";
 import { logAudit } from "@/lib/audit-db";
 
@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const body = await request.json();
-  const { responsavel, mensalidadeInicial, ...studentData } = body;
+  const { responsavel, ...studentData } = body;
 
   const student = await getStudentById(params.id);
   if (!student) return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
@@ -41,20 +41,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     await updateStudent(params.id, studentData);
-
-    if (typeof mensalidadeInicial?.valor === "number" && mensalidadeInicial.vencimento) {
-      await createCharge({
-        studentId: params.id,
-        categoria: "mensalidade",
-        tipo: "mensalidade",
-        competencia: mensalidadeInicial.vencimento.slice(0, 7),
-        descricao: "Mensalidade",
-        valor: mensalidadeInicial.valor,
-        vencimento: mensalidadeInicial.vencimento,
-        status: "pendente",
-        createdAt: new Date().toISOString(),
-      });
-    }
 
     await logAudit({ actorEmail: session.email ?? "admin", acao: "editar", entidade: "student", entidadeId: params.id });
     return NextResponse.json({ ok: true, credenciais });

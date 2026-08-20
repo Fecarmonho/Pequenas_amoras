@@ -28,9 +28,14 @@ export interface Student {
   /** Só se aplica à modalidade "Contraturno Escolar" — Manhã, Tarde ou Integral. */
   periodo?: string;
   observacoes?: string;
-  /** Dia do mês (1-31) em que a mensalidade normalmente vence — usado só
-   * pra sugerir a data ao lançar uma nova parcela, não é obrigatório. */
+  /** Dia do mês (1-31) em que a mensalidade normalmente vence. */
   diaVencimento?: number;
+  /** Valor fixo da mensalidade — configurado uma vez no cadastro e usado
+   * pra gerar a cobrança do mês automaticamente (ver
+   * lib/mensalidade-renovacao.ts). Não é uma cobrança em si, só o "preço
+   * combinado" — editar aqui muda o valor dos próximos meses, nunca cria
+   * uma cobrança nova nem mexe nas já lançadas. */
+  valorMensalidade?: number;
   /** IDs de `Guardian` que podem ver este estudante — a checagem de posse
    * (nunca confiar em ID vindo da URL) sempre olha esse array. */
   guardianIds: string[];

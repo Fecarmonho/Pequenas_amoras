@@ -6,7 +6,6 @@ import { Guardian, PessoaAutorizada, Student, MODALIDADES, PERIODOS } from "@/li
 import { processarFoto } from "@/lib/image-compress";
 import { slugify } from "@/lib/slug";
 import { onlyDigits } from "@/lib/cpf";
-import { proximoVencimento } from "@/lib/vencimento";
 import { HiOutlineTrash, HiOutlinePlus, HiOutlineClipboardDocument } from "react-icons/hi2";
 import { FaWhatsapp } from "react-icons/fa6";
 
@@ -102,12 +101,13 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   const [acessoError, setAcessoError] = useState<string | null>(null);
   const [acessoLoading, setAcessoLoading] = useState<"reenviar" | "excluir" | null>(null);
 
-  // Mensalidade — o vencimento sempre vem do dia fixo (não tem campo de
-  // data separado): a mensalidade renova sozinha todo mês nesse dia (ver
-  // lib/mensalidade-renovacao.ts). Valor inicial só faz sentido na
-  // primeira vez; depois disso o ciclo é gerenciado em Financeiro > Mensalidades.
+  // Mensalidade — valor e dia fixo ficam salvos direto no cadastro do
+  // estudante (não são uma cobrança em si). A cobrança do mês é gerada
+  // sozinha a partir daqui (ver lib/mensalidade-renovacao.ts) — mudar o
+  // valor aqui só afeta os próximos meses, nunca cria cobrança na hora
+  // nem mexe nas que já existem.
   const [diaVencimento, setDiaVencimento] = useState(student?.diaVencimento?.toString() ?? "");
-  const [valorMensalidade, setValorMensalidade] = useState("");
+  const [valorMensalidade, setValorMensalidade] = useState(student?.valorMensalidade?.toString() ?? "");
 
   const [pessoasAutorizadas, setPessoasAutorizadas] = useState<PessoaAutorizada[]>(student?.pessoasAutorizadas ?? []);
   const [observacoes, setObservacoes] = useState(student?.observacoes ?? "");
@@ -165,7 +165,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
     setError(null);
 
     if (valorMensalidade && !diaVencimento) {
-      setError("Informe o dia de vencimento fixo pra lançar a mensalidade.");
+      setError("Informe o dia de vencimento fixo pra registrar a mensalidade.");
       setTab("mensalidade");
       return;
     }
@@ -184,6 +184,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       pessoasAutorizadas,
       observacoes,
       diaVencimento: diaVencimento ? Number(diaVencimento) : undefined,
+      valorMensalidade: valorMensalidade ? Number(valorMensalidade) : undefined,
       // Só manda "responsavel" (e portanto só tenta criar/mexer no acesso
       // da família) quando o admin realmente preencheu o telefone na aba
       // Acesso — o campo "usuário" se auto-sugere a partir do nome mesmo
@@ -197,10 +198,6 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
               telefone: responsavelTelefone,
               usuario: !guardian ? usuario : undefined,
             }
-          : undefined,
-      mensalidadeInicial:
-        valorMensalidade && diaVencimento
-          ? { valor: Number(valorMensalidade), vencimento: proximoVencimento(Number(diaVencimento)) }
           : undefined,
     };
 
@@ -480,15 +477,15 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
                 className={inputClass}
               />
               <span className="mt-1 block text-xs text-ink/40">
-                Todo mês a mensalidade vence nesse dia — não tem campo de data separado, é sempre esse dia. Obrigatório pra lançar a mensalidade.
+                Todo mês a mensalidade vence nesse dia — não tem campo de data separado, é sempre esse dia.
               </span>
             </label>
 
             <div className="border-t border-amora-900/10 pt-4">
               <p className="text-sm text-ink/50">
-                {isEdit
-                  ? "Preencha o valor pra lançar uma nova mensalidade — ela aparece direto em Financeiro → Mensalidades, com vencimento no dia fixo acima."
-                  : "Lança a primeira mensalidade já na criação do estudante (opcional — dá pra fazer isso depois também)."}
+                Valor fixo combinado com a família. A cobrança do mês aparece sozinha em Financeiro → Mensalidades,
+                sem precisar lançar nada aqui — mudar o valor só afeta os próximos meses. Pra cobrar algo fora do
+                combinado (passeio, material, diária), use &ldquo;Cobrança extra&rdquo; na ficha financeira do estudante.
               </p>
               <label className="mt-3 block text-sm font-medium text-ink/70">
                 Valor (R$)
