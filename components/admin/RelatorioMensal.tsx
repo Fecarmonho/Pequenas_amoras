@@ -44,7 +44,7 @@ function DonutChart({ pct }: { pct: number }) {
 function BarraAluno({ nome, valor, total }: { nome: string; valor: number; total: number }) {
   const pct = total > 0 ? Math.round((valor / total) * 100) : 0;
   return (
-    <div>
+    <div data-linha-aluno>
       <div className="flex items-center justify-between text-xs">
         <span className="truncate pr-2 font-medium text-ink/70">{nome}</span>
         <span className="shrink-0 font-mono text-ink/50">{formatBRL(valor)}</span>
@@ -112,7 +112,16 @@ export default function RelatorioMensal({
     try {
       // dá um instante pro React esconder os controles antes da captura
       await new Promise((r) => setTimeout(r, 50));
-      await baixarReciboPdf(ref.current, `balanco-${mes}.pdf`);
+
+      // Pontos seguros de quebra de página: o espaço logo abaixo de cada
+      // linha "por aluno" — com muitos alunos o relatório passa de uma
+      // página, e sem isso o corte podia cair no meio de um nome.
+      const containerTop = ref.current.getBoundingClientRect().top;
+      const pontosDeQuebraSeguros = Array.from(ref.current.querySelectorAll<HTMLElement>("[data-linha-aluno]")).map(
+        (el) => el.getBoundingClientRect().bottom - containerTop + 4
+      );
+
+      await baixarReciboPdf(ref.current, `balanco-${mes}.pdf`, pontosDeQuebraSeguros);
     } finally {
       setExportando(false);
     }

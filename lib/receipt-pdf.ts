@@ -4,8 +4,17 @@
  * Transforma um elemento do DOM (o cartão do recibo) numa imagem
  * (html2canvas) e monta um PDF de uma página com ela (jsPDF). Roda só no
  * navegador — nunca importar isso de um Server Component.
+ *
+ * `pontosDeQuebraSeguros` (opcional): posições em px CSS (relativas ao
+ * topo do `elemento`), tiradas do DOM antes de capturar, de lugares onde
+ * é seguro cortar a página — ex: o espaço vazio embaixo de cada linha de
+ * uma lista. Sem isso, um conteúdo mais alto que uma folha (várias
+ * dezenas de linhas, por exemplo) corta exatamente na altura da página,
+ * que não tem por que coincidir com o fim de uma linha — cortando o
+ * texto no meio. Com os pontos, a quebra usa o mais próximo (e menor ou
+ * igual) do limite da página, em vez do limite cru.
  */
-async function gerarPdfBlob(elemento: HTMLElement): Promise<Blob> {
+async function gerarPdfBlob(elemento: HTMLElement, pontosDeQuebraSeguros?: number[]): Promise<Blob> {
   const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
     import("html2canvas"),
     import("jspdf"),
@@ -19,7 +28,9 @@ async function gerarPdfBlob(elemento: HTMLElement): Promise<Blob> {
   await document.fonts.ready;
   await new Promise((r) => setTimeout(r, 50));
 
+  const larguraCssPx = elemento.getBoundingClientRect().width;
   const canvasCompleto = await html2canvas(elemento, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+  const escalaCanvas = canvasCompleto.width / larguraCssPx;
 
   // Página A4 padrão (testamos página de tamanho customizado antes, mas
   // leitores de PDF de celular não lidam bem com página fora do padrão —
@@ -33,11 +44,24 @@ async function gerarPdfBlob(elemento: HTMLElement): Promise<Blob> {
   const pxPorMm = canvasCompleto.width / larguraMm;
   const alturaUtilPx = Math.floor(alturaUtilMm * pxPorMm);
 
+  const pontosSegurosPx = (pontosDeQuebraSeguros ?? [])
+    .map((y) => Math.round(y * escalaCanvas))
+    .sort((a, b) => a - b);
+
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   let yPx = 0;
   let pagina = 0;
   while (yPx < canvasCompleto.height) {
-    const alturaFatiaPx = Math.min(alturaUtilPx, canvasCompleto.height - yPx);
+    let alturaFatiaPx = Math.min(alturaUtilPx, canvasCompleto.height - yPx);
+    const limite = yPx + alturaFatiaPx;
+    // Só ajusta se não é a última fatia (senão ia sobrar espaço em
+    // branco no final à toa) — acha o ponto seguro mais alto possível
+    // sem passar do limite da página.
+    if (limite < canvasCompleto.height) {
+      const candidato = [...pontosSegurosPx].reverse().find((p) => p > yPx && p <= limite);
+      if (candidato) alturaFatiaPx = candidato - yPx;
+    }
+
     const fatia = document.createElement("canvas");
     fatia.width = canvasCompleto.width;
     fatia.height = alturaFatiaPx;
@@ -55,8 +79,8 @@ async function gerarPdfBlob(elemento: HTMLElement): Promise<Blob> {
   return doc.output("blob");
 }
 
-export async function baixarReciboPdf(elemento: HTMLElement, nomeArquivo: string) {
-  const blob = await gerarPdfBlob(elemento);
+export async function baixarReciboPdf(elemento: HTMLElement, nomeArquivo: string, pontosDeQuebraSeguros?: number[]) {
+  const blob = await gerarPdfBlob(elemento, pontosDeQuebraSeguros);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -70,8 +94,13 @@ export async function baixarReciboPdf(elemento: HTMLElement, nomeArquivo: string
 /** Usa o menu nativo de compartilhamento do celular (WhatsApp etc.) quando
  * disponível — vai o PDF junto com a frase, não só o arquivo sozinho; sem
  * suporte, cai pro download normal. */
-export async function enviarReciboPdf(elemento: HTMLElement, nomeArquivo: string, mensagem?: string) {
-  const blob = await gerarPdfBlob(elemento);
+export async function enviarReciboPdf(
+  elemento: HTMLElement,
+  nomeArquivo: string,
+  mensagem?: string,
+  pontosDeQuebraSeguros?: number[]
+) {
+  const blob = await gerarPdfBlob(elemento, pontosDeQuebraSeguros);
   const file = new File([blob], nomeArquivo, { type: "application/pdf" });
 
   if (navigator.canShare?.({ files: [file] })) {
@@ -79,5 +108,5 @@ export async function enviarReciboPdf(elemento: HTMLElement, nomeArquivo: string
     return;
   }
 
-  await baixarReciboPdf(elemento, nomeArquivo);
+  await baixarReciboPdf(elemento, nomeArquivo, pontosDeQuebraSeguros);
 }
