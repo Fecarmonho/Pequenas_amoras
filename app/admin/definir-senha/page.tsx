@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
 import { auth } from "@/lib/firebase-client";
@@ -85,7 +86,18 @@ function DefinirSenhaForm() {
         {verificando && <p className="mt-6 text-center text-sm text-white/50">Verificando o link...</p>}
 
         {!verificando && erroLink && !sucesso && (
-          <p className="mt-6 text-center text-sm font-medium text-rosa-300">{erroLink}</p>
+          <div className="mt-6 text-center">
+            <p className="text-sm font-medium text-rosa-300">{erroLink}</p>
+            <p className="mt-2 text-xs text-white/50">
+              Se você já criou sua senha antes, pode entrar direto — esse link só serve pra criar a senha uma vez.
+            </p>
+            <Link
+              href="/admin/login"
+              className="btn-primary mt-4 inline-block w-full rounded-full px-6 py-3 font-display font-bold text-white"
+            >
+              Ir para o login
+            </Link>
+          </div>
         )}
 
         {!verificando && email && !sucesso && (
