@@ -13,22 +13,44 @@ async function gerarPdfBlob(elemento: HTMLElement): Promise<Blob> {
 
   // Sem isso, o html2canvas às vezes tira a foto antes da fonte customizada
   // (Fredoka/Poppins) terminar de carregar — o texto sai com a métrica da
-  // fonte de fallback e fica cortado/desalinhado no PDF.
+  // fonte de fallback e fica cortado/desalinhado no PDF. setTimeout (não
+  // requestAnimationFrame) de propósito: rAF fica pausado em aba fora de
+  // foco/minimizada, travando a geração pra sempre nesse caso.
   await document.fonts.ready;
-  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await new Promise((r) => setTimeout(r, 50));
 
-  const canvas = await html2canvas(elemento, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
-  const imgData = canvas.toDataURL("image/png");
+  const canvasCompleto = await html2canvas(elemento, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
 
-  // Página do tamanho exato do recibo (+ margem) em vez de A4 fixo — com
-  // A4 fixo, um recibo com várias cobranças ficava mais alto que a
-  // página e a parte de baixo (ex: a chave PIX) saía cortada, sem
-  // segunda página pra continuar.
+  // Página A4 padrão (testamos página de tamanho customizado antes, mas
+  // leitores de PDF de celular não lidam bem com página fora do padrão —
+  // mostravam só um pedaço, desenquadrado). Um recibo mais alto que uma
+  // folha é recortado em fatias do tamanho de uma página ANTES de virar
+  // PNG — passar a mesma imagem enorme várias vezes pro jsPDF (uma por
+  // página) era lento demais e travava no celular.
   const margemMm = 10;
   const larguraMm = 190;
-  const alturaMm = (canvas.height * larguraMm) / canvas.width;
-  const doc = new jsPDF({ unit: "mm", format: [larguraMm + margemMm * 2, alturaMm + margemMm * 2] });
-  doc.addImage(imgData, "PNG", margemMm, margemMm, larguraMm, alturaMm);
+  const alturaUtilMm = 297 - margemMm * 2;
+  const pxPorMm = canvasCompleto.width / larguraMm;
+  const alturaUtilPx = Math.floor(alturaUtilMm * pxPorMm);
+
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  let yPx = 0;
+  let pagina = 0;
+  while (yPx < canvasCompleto.height) {
+    const alturaFatiaPx = Math.min(alturaUtilPx, canvasCompleto.height - yPx);
+    const fatia = document.createElement("canvas");
+    fatia.width = canvasCompleto.width;
+    fatia.height = alturaFatiaPx;
+    fatia
+      .getContext("2d")!
+      .drawImage(canvasCompleto, 0, yPx, canvasCompleto.width, alturaFatiaPx, 0, 0, canvasCompleto.width, alturaFatiaPx);
+
+    if (pagina > 0) doc.addPage();
+    doc.addImage(fatia.toDataURL("image/png"), "PNG", margemMm, margemMm, larguraMm, alturaFatiaPx / pxPorMm);
+
+    yPx += alturaFatiaPx;
+    pagina++;
+  }
 
   return doc.output("blob");
 }
