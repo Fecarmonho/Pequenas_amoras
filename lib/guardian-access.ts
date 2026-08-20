@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { adminAuth } from "@/lib/firebase-admin";
 import { createGuardian, getGuardianByEmail } from "@/lib/guardians-db";
 import { emailAcessoBase } from "@/lib/slug";
+import { criarTokenDefinirSenha } from "@/lib/password-setup-token";
 
 /** Acha um e-mail livre a partir do usuário desejado (escolhido pelo
  * admin, ou sugerido a partir do nome do aluno) — "luiza@amoras.com", e
@@ -46,9 +47,8 @@ export async function criarAcessoFamilia(params: {
     displayName: params.nomeResponsavel,
   });
 
-  const link = await adminAuth.generatePasswordResetLink(email, {
-    url: `${params.origin}/familia/definir-senha`,
-  });
+  const token = await criarTokenDefinirSenha(userRecord.uid, email);
+  const link = `${params.origin}/familia/definir-senha?token=${token}`;
 
   const guardian = await createGuardian({
     uid: userRecord.uid,

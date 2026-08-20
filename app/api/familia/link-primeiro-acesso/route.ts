@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGuardianByEmail } from "@/lib/guardians-db";
-import { adminAuth } from "@/lib/firebase-admin";
+import { criarTokenDefinirSenha } from "@/lib/password-setup-token";
 
 /**
  * POST /api/familia/link-primeiro-acesso
@@ -20,13 +20,12 @@ export async function POST(request: NextRequest) {
   const email = valor.includes("@") ? valor : `${valor}@amoras.com`;
   const guardian = await getGuardianByEmail(email);
 
-  if (!guardian) {
+  if (!guardian?.uid) {
     return NextResponse.json({ error: "Não encontramos um cadastro com esse usuário." }, { status: 404 });
   }
 
-  const link = await adminAuth.generatePasswordResetLink(email, {
-    url: `${request.nextUrl.origin}/familia/definir-senha`,
-  });
+  const token = await criarTokenDefinirSenha(guardian.uid, email);
+  const link = `${request.nextUrl.origin}/familia/definir-senha?token=${token}`;
 
   return NextResponse.json({ link });
 }

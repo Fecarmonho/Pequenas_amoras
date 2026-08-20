@@ -3,8 +3,6 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
-import { auth } from "@/lib/firebase-client";
 
 export default function DefinirSenhaPage() {
   return (
@@ -17,7 +15,7 @@ export default function DefinirSenhaPage() {
 function DefinirSenhaForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const oobCode = searchParams.get("oobCode");
+  const token = searchParams.get("token");
 
   const [email, setEmail] = useState<string | null>(null);
   const [verificando, setVerificando] = useState(true);
@@ -32,21 +30,26 @@ function DefinirSenhaForm() {
   useEffect(() => {
     // Depois de já ter dado certo, ignora qualquer mudança na URL — o
     // redirecionamento automático pro login (alguns segundos depois de
-    // criar a senha) muda a URL da página, e sem essa checagem esse
-    // mesmo efeito rodava de novo vendo a URL nova (sem oobCode) e
-    // mostrava "link inválido" por engano, mesmo já tendo funcionado.
+    // criar a senha) muda a URL da página.
     if (sucesso) return;
 
-    if (!oobCode) {
+    if (!token) {
       setErroLink("Link inválido — falta um código.");
       setVerificando(false);
       return;
     }
-    verifyPasswordResetCode(auth, oobCode)
-      .then((emailVerificado) => setEmail(emailVerificado))
-      .catch(() => setErroLink("Esse link expirou ou já foi usado. Peça um novo pra quem administra o painel."))
+    fetch(`/api/definir-senha?token=${encodeURIComponent(token)}`)
+      .then(async (r) => ({ ok: r.ok, data: await r.json() }))
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setErroLink(data.error ?? "Esse link expirou ou já foi usado. Peça um novo pra quem administra o painel.");
+          return;
+        }
+        setEmail(data.email);
+      })
+      .catch(() => setErroLink("Não foi possível verificar o link. Tenta de novo em alguns segundos."))
       .finally(() => setVerificando(false));
-  }, [oobCode, sucesso]);
+  }, [token, sucesso]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,11 +66,18 @@ function DefinirSenhaForm() {
 
     setLoading(true);
     try {
-      await confirmPasswordReset(auth, oobCode!, senha);
+      const response = await fetch("/api/definir-senha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, senha }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível salvar a senha.");
+
       setSucesso(true);
       setTimeout(() => router.push("/admin/login"), 2500);
     } catch (err) {
-      setError("Não foi possível salvar a senha. Tenta pedir um novo link.");
+      setError(err instanceof Error ? err.message : "Não foi possível salvar a senha. Tenta pedir um novo link.");
     } finally {
       setLoading(false);
     }

@@ -4,6 +4,7 @@ import { getStudentById, updateStudent } from "@/lib/students-db";
 import { getGuardianById, deleteGuardian } from "@/lib/guardians-db";
 import { adminAuth } from "@/lib/firebase-admin";
 import { logAudit } from "@/lib/audit-db";
+import { criarTokenDefinirSenha } from "@/lib/password-setup-token";
 
 /** POST — gera um novo link de primeiro acesso (define senha) pro
  * responsável já cadastrado, sem apagar nada — útil quando a família
@@ -17,11 +18,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
   const guardianId = student.guardianIds[0];
   const guardian = guardianId ? await getGuardianById(guardianId) : null;
-  if (!guardian) return NextResponse.json({ error: "Este estudante ainda não tem acesso cadastrado." }, { status: 400 });
+  if (!guardian?.uid) return NextResponse.json({ error: "Este estudante ainda não tem acesso cadastrado." }, { status: 400 });
 
-  const link = await adminAuth.generatePasswordResetLink(guardian.email, {
-    url: `${request.nextUrl.origin}/familia/definir-senha`,
-  });
+  const token = await criarTokenDefinirSenha(guardian.uid, guardian.email);
+  const link = `${request.nextUrl.origin}/familia/definir-senha?token=${token}`;
 
   await logAudit({ actorEmail: session.email ?? "admin", acao: "reenviar-link", entidade: "guardian", entidadeId: guardian.id });
 

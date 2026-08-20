@@ -3,6 +3,7 @@ import { getAdminSession } from "@/lib/admin-session";
 import { getAllAdmins, createAdminRecord } from "@/lib/admins-db";
 import { adminAuth } from "@/lib/firebase-admin";
 import { logAudit } from "@/lib/audit-db";
+import { criarTokenDefinirSenha } from "@/lib/password-setup-token";
 
 export async function GET() {
   const session = await getAdminSession();
@@ -43,9 +44,8 @@ export async function POST(request: NextRequest) {
 
     await createAdminRecord({ uid, nome, email });
 
-    const link = await adminAuth.generatePasswordResetLink(email, {
-      url: `${request.nextUrl.origin}/admin/definir-senha`,
-    });
+    const token = await criarTokenDefinirSenha(uid, email);
+    const link = `${request.nextUrl.origin}/admin/definir-senha?token=${token}`;
 
     await logAudit({ actorEmail: session.email ?? "admin", acao: "criar", entidade: "admin", entidadeId: uid });
 
