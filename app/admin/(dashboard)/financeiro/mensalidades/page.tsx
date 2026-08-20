@@ -94,6 +94,8 @@ export default async function MensalidadesPage() {
         vigente={vigente}
         todasEmAberto={todasEmAberto}
         historico={historico}
+        charges={charges}
+        studentsPorId={Object.fromEntries(students.map((s) => [s.id, s.nome]))}
       />
     </div>
   );

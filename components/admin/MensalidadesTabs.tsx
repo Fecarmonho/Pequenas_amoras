@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { StatusCobrancaEfetivo } from "@/lib/types";
+import { Charge, StatusCobrancaEfetivo } from "@/lib/types";
 import { STATUS_LABEL, STATUS_EMOJI } from "@/lib/charge-status";
 import { formatBRL, formatDate, formatCompetencia } from "@/lib/format";
 import { HiChevronRight } from "react-icons/hi2";
 import MarcarRecebidoButton from "@/components/admin/MarcarRecebidoButton";
+import RelatorioMensal from "@/components/admin/RelatorioMensal";
 
 /** Uma linha por estudante — os campos de cobrança vêm null quando esse
  * aluno não tem nada em aberto pra mostrar (nunca lançou mensalidade, ou
@@ -39,6 +40,7 @@ const TABS = [
   { id: "vigente", label: "Mês vigente" },
   { id: "todas", label: "Todas" },
   { id: "historico", label: "Histórico" },
+  { id: "relatorio", label: "Balanço" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -108,11 +110,15 @@ export default function MensalidadesTabs({
   vigente,
   todasEmAberto,
   historico,
+  charges,
+  studentsPorId,
 }: {
   mesAtualLabel: string;
   vigente: MensalidadeStudentRow[];
   todasEmAberto: MensalidadeStudentRow[];
   historico: HistoricoRow[];
+  charges: Charge[];
+  studentsPorId: Record<string, string>;
 }) {
   const [tab, setTab] = useState<TabId>("vigente");
   const [filtroMes, setFiltroMes] = useState("todos");
@@ -238,6 +244,8 @@ export default function MensalidadesTabs({
           </div>
         </section>
       )}
+
+      {tab === "relatorio" && <RelatorioMensal charges={charges} studentsPorId={studentsPorId} />}
     </div>
   );
 }
