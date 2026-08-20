@@ -56,9 +56,8 @@ function ParcelaRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: 
     >
       <div className="min-w-0 flex-1 text-left">
         <p className="text-sm font-semibold uppercase leading-normal tracking-wide text-amora-700">
-          {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
+          Mensalidade {charge.competencia ? `— ${formatCompetencia(charge.competencia)}` : ""}
         </p>
-        <p className="mt-1 text-xs leading-normal text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
       </div>
       <div className="shrink-0 text-right">
         <p className="font-mono text-lg font-bold text-amora-950">{formatBRL(charge.valor)}</p>
