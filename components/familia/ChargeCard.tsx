@@ -1,6 +1,6 @@
-import { Charge } from "@/lib/types";
+import { Charge, TIPOS_COBRANCA_EXTRA } from "@/lib/types";
 import { statusEfetivo, STATUS_LABEL, STATUS_EMOJI } from "@/lib/charge-status";
-import { formatBRL, formatDate, formatCompetencia } from "@/lib/format";
+import { formatBRL, formatCompetencia } from "@/lib/format";
 import { HiOutlineArrowDownTray } from "react-icons/hi2";
 
 /** Linha compacta de mensalidade — "Mensalidade — mês/ano" e valor à
@@ -39,19 +39,20 @@ export function MensalidadeRow({ charge, ocultarStatus }: { charge: Charge; ocul
   );
 }
 
-/** Linha compacta de cobrança extra — só a descrição escrita pelo admin
- * (ex: "Diária do dia 07/07"), sem repetir "Cobrança extra" em cada
- * linha (isso já fica só no título da seção). */
+/** Linha compacta de cobrança extra — título mostra o tipo (ex:
+ * "Diária"), sem repetir "Cobrança extra" (isso já fica só no título da
+ * seção); a descrição livre do admin vai embaixo. */
 export function ExtraRow({ charge, ocultarStatus }: { charge: Charge; ocultarStatus?: boolean }) {
   const status = statusEfetivo(charge);
+  const tipoLabel = TIPOS_COBRANCA_EXTRA.find((t) => t.value === charge.tipo)?.label ?? charge.descricao;
   return (
     <div className="flex items-center justify-between gap-3 border-b border-dashed border-amora-900/10 py-2.5 last:border-0">
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-ink">{charge.descricao}</p>
-        <p className="truncate text-xs text-ink/40">Vence {formatDate(charge.vencimento)}</p>
+        <p className="truncate text-sm font-semibold uppercase tracking-wide text-amora-700">{tipoLabel}</p>
+        {charge.descricao && <p className="truncate text-xs text-ink/40">{charge.descricao}</p>}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <span className="text-sm font-semibold text-ink">{formatBRL(charge.valor)}</span>
+        <span className="font-mono text-sm font-bold text-amora-950">{formatBRL(charge.valor)}</span>
         {!ocultarStatus && (
           <span className="text-[11px] font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
         )}

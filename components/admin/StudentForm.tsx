@@ -114,6 +114,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [credenciais, setCredenciais] = useState<Credenciais | null>(null);
 
   // Sugere o usuário a partir do nome do aluno — o admin pode editar à
@@ -163,6 +164,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSaved(false);
 
     if (valorMensalidade && !diaVencimento) {
       setError("Informe o dia de vencimento fixo pra registrar a mensalidade.");
@@ -222,8 +224,16 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
         return;
       }
 
-      router.push("/admin/estudantes");
-      router.refresh();
+      if (isEdit) {
+        // Fica na mesma tela — sair pra lista a cada salvamento obrigava a
+        // reabrir e navegar de volta pra aba certa (Responsáveis,
+        // Mensalidade...) toda vez que precisava editar mais de uma coisa.
+        setSaved(true);
+        router.refresh();
+      } else {
+        router.push("/admin/estudantes");
+        router.refresh();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar estudante.");
     } finally {
@@ -542,6 +552,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
         )}
 
         {error && <p className="mt-4 text-sm font-medium text-rosa-600">{error}</p>}
+        {saved && <p className="mt-4 text-sm font-medium text-folha">Salvo com sucesso ✓</p>}
 
         <button type="submit" disabled={loading} className="btn-primary mt-6 rounded-full px-6 py-3 font-display font-bold text-white disabled:opacity-60">
           {loading ? "Salvando..." : isEdit ? "Salvar alterações" : "Cadastrar estudante"}

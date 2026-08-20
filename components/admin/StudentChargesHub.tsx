@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Charge, Student } from "@/lib/types";
+import { Charge, Student, TIPOS_COBRANCA_EXTRA } from "@/lib/types";
 import { statusEfetivo, STATUS_LABEL, STATUS_EMOJI } from "@/lib/charge-status";
-import { formatBRL, formatDate, formatCompetencia } from "@/lib/format";
+import { formatBRL, formatCompetencia } from "@/lib/format";
 import { baixarReciboPdf, enviarReciboPdf } from "@/lib/receipt-pdf";
 import ChargeForm from "@/components/admin/ChargeForm";
 import DeleteButton from "@/components/admin/DeleteButton";
@@ -72,8 +72,11 @@ function ParcelaRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: 
   );
 }
 
+/** Título mostra o tipo (ex: "Diária"), não "Cobrança extra" — isso já
+ * fica só no cabeçalho da seção. A descrição livre do admin vai embaixo. */
 function ExtraRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: () => void; ocultarAcoes: boolean }) {
   const status = statusEfetivo(charge);
+  const tipoLabel = TIPOS_COBRANCA_EXTRA.find((t) => t.value === charge.tipo)?.label ?? charge.descricao;
   return (
     <div
       role={ocultarAcoes ? undefined : "button"}
@@ -83,11 +86,13 @@ function ExtraRow({ charge, onEdit, ocultarAcoes }: { charge: Charge; onEdit: ()
       className={`flex items-center justify-between gap-3 border-b border-dashed border-amora-900/10 py-3.5 last:border-0 ${ocultarAcoes ? "" : "cursor-pointer"}`}
     >
       <div className="min-w-0 flex-1 text-left">
-        <p className="text-sm font-medium leading-normal text-ink hover:text-amora-700">{charge.descricao}</p>
-        <p className="text-xs leading-normal text-ink/40">Vence {formatDate(charge.vencimento)}</p>
+        <p className="text-sm font-semibold uppercase leading-normal tracking-wide text-amora-700">{tipoLabel}</p>
+        {charge.descricao && <p className="text-xs leading-normal text-ink/40">{charge.descricao}</p>}
       </div>
-      <span className="shrink-0 text-sm font-semibold text-ink">{formatBRL(charge.valor)}</span>
-      {!ocultarAcoes && <span className="shrink-0 text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>}
+      <div className="shrink-0 text-right">
+        <p className="font-mono text-base font-bold text-amora-950">{formatBRL(charge.valor)}</p>
+        {!ocultarAcoes && <span className="text-xs font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>}
+      </div>
       {!ocultarAcoes && (
         <div onClick={(e) => e.stopPropagation()}>
           <DeleteButton url={`/api/admin/charges/${charge.id}`} confirmMessage="Excluir esta cobrança?" />
