@@ -147,13 +147,13 @@ export default function StudentChargesHub({
   return (
     <div className="flex flex-col gap-4">
       <section ref={reciboRef} className="overflow-hidden rounded-2xl border border-amora-900/8 bg-white shadow-card">
-        {/* Centralização por text-align (não flex) — o html2canvas nem
-            sempre reproduz fielmente o align-items do flexbox. */}
         <div className="bg-white px-6 py-7 text-center">
           <img src="/brand/recibo-header.png" alt="Amoras — Recibo de mensalidade" className="mx-auto h-20 w-auto sm:h-28" />
-          <p className="mt-3 inline-block rounded-full bg-amora-100 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wide text-amora-700">
-            {student.nome}
-          </p>
+          <div className="mt-3 flex justify-center">
+            <p className="rounded-full bg-amora-100 px-3 py-1.5 text-[11px] font-bold uppercase leading-normal tracking-wide text-amora-700">
+              {student.nome}
+            </p>
+          </div>
         </div>
 
         <div className="px-5 py-2">
