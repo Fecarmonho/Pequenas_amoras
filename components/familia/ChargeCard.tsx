@@ -3,9 +3,9 @@ import { statusEfetivo, STATUS_LABEL, STATUS_EMOJI } from "@/lib/charge-status";
 import { formatBRL, formatDate, formatCompetencia } from "@/lib/format";
 import { HiOutlineArrowDownTray } from "react-icons/hi2";
 
-/** Linha compacta de mensalidade — mês/competência em destaque, data de
- * vencimento embaixo, valor à direita (mesmo padrão do hub financeiro do
- * admin, pra ficar consistente entre as duas telas). */
+/** Linha compacta de mensalidade — "Mensalidade — mês/ano" e valor à
+ * direita, sem data de vencimento (não é relevante pra família ver
+ * aqui). */
 export function MensalidadeRow({ charge, ocultarStatus }: { charge: Charge; ocultarStatus?: boolean }) {
   const status = statusEfetivo(charge);
   const boletoUrl = charge.boleto?.pdfUrl;
@@ -15,9 +15,8 @@ export function MensalidadeRow({ charge, ocultarStatus }: { charge: Charge; ocul
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold uppercase tracking-wide text-amora-700">
-            {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
+            Mensalidade {charge.competencia ? `— ${formatCompetencia(charge.competencia)}` : ""}
           </p>
-          <p className="truncate text-xs text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
         </div>
         <div className="shrink-0 text-right">
           <p className="font-mono text-base font-bold text-amora-950">{formatBRL(charge.valor)}</p>
