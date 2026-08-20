@@ -29,6 +29,13 @@ function DefinirSenhaForm() {
   const [sucesso, setSucesso] = useState(false);
 
   useEffect(() => {
+    // Depois de já ter dado certo, ignora qualquer mudança na URL — o
+    // redirecionamento automático pro login (alguns segundos depois de
+    // criar a senha) muda a URL da página, e sem essa checagem esse
+    // mesmo efeito rodava de novo vendo a URL nova (sem oobCode) e
+    // mostrava "link inválido" por engano, mesmo já tendo funcionado.
+    if (sucesso) return;
+
     if (!oobCode) {
       setErroLink("Link inválido — falta um código.");
       setVerificando(false);
@@ -38,7 +45,7 @@ function DefinirSenhaForm() {
       .then((emailVerificado) => setEmail(emailVerificado))
       .catch(() => setErroLink("Esse link expirou ou já foi usado. Peça um novo pra quem administra o painel."))
       .finally(() => setVerificando(false));
-  }, [oobCode]);
+  }, [oobCode, sucesso]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -77,7 +84,7 @@ function DefinirSenhaForm() {
 
         {verificando && <p className="mt-6 text-center text-sm text-white/50">Verificando o link...</p>}
 
-        {!verificando && erroLink && (
+        {!verificando && erroLink && !sucesso && (
           <p className="mt-6 text-center text-sm font-medium text-rosa-300">{erroLink}</p>
         )}
 
