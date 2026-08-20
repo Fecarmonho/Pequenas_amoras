@@ -36,12 +36,17 @@ function DonutChart({ pct }: { pct: number }) {
   );
 }
 
+/** Sem `gap` de propósito (nem aqui, nem nos outros containers dentro da
+ * área exportada em PDF) — o html2canvas não calcula direito o
+ * espaçamento de `gap` do flexbox/grid, as linhas saíam sobrepostas e os
+ * nomes cortados no PDF. Espaçamento sempre por margem, que ele reproduz
+ * certinho. */
 function BarraAluno({ nome, valor, total }: { nome: string; valor: number; total: number }) {
   const pct = total > 0 ? Math.round((valor / total) * 100) : 0;
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="truncate font-medium text-ink/70">{nome}</span>
+      <div className="flex items-center justify-between text-xs">
+        <span className="truncate pr-2 font-medium text-ink/70">{nome}</span>
         <span className="shrink-0 font-mono text-ink/50">{formatBRL(valor)}</span>
       </div>
       <div className="mt-1 h-2 overflow-hidden rounded-full bg-amora-900/5">
@@ -151,24 +156,24 @@ export default function RelatorioMensal({
           <p className="mt-6 py-6 text-center text-sm text-ink/40">Nenhuma cobrança nesse mês.</p>
         ) : (
           <>
-            <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:justify-center">
+            <div className="mt-6 flex flex-col items-center sm:flex-row sm:justify-center">
               <DonutChart pct={pctRecebido} />
-              <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-center sm:text-left">
-                <div>
+              <div className="mt-6 grid grid-cols-2 text-center sm:ml-8 sm:mt-0 sm:text-left">
+                <div className="px-3 pb-4">
                   <p className="text-xs uppercase tracking-wide text-ink/40">Recebido</p>
                   <p className="font-mono text-xl font-bold text-folha">{formatBRL(recebido)}</p>
                 </div>
-                <div>
+                <div className="px-3 pb-4">
                   <p className="text-xs uppercase tracking-wide text-ink/40">Em aberto</p>
                   <p className="font-mono text-xl font-bold text-rosa-600">{formatBRL(emAberto)}</p>
                 </div>
-                <div>
+                <div className="px-3">
                   <p className="text-xs uppercase tracking-wide text-ink/40">Mensalidades</p>
                   <p className="font-mono text-base font-semibold text-amora-950">
                     {mensalidades.length} · {formatBRL(mensalidades.reduce((s, c) => s + c.valor, 0))}
                   </p>
                 </div>
-                <div>
+                <div className="px-3">
                   <p className="text-xs uppercase tracking-wide text-ink/40">Extras</p>
                   <p className="font-mono text-base font-semibold text-amora-950">
                     {extras.length} · {formatBRL(extras.reduce((s, c) => s + c.valor, 0))}
@@ -179,7 +184,7 @@ export default function RelatorioMensal({
 
             <div className="mt-8">
               <p className="text-xs font-bold uppercase tracking-wide text-amora-700">Por aluno</p>
-              <div className="mt-3 flex flex-col gap-3">
+              <div className="mt-3 space-y-3">
                 {porAluno.map((a) => (
                   <BarraAluno key={a.studentId} nome={a.nome} valor={a.valor} total={total} />
                 ))}
