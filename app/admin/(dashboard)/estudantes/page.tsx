@@ -53,7 +53,16 @@ export default async function EstudantesPage() {
                 <td className="px-4 py-3 text-ink/60">{s.modalidade}</td>
                 <td className="px-4 py-3 text-ink/60">{s.periodo || "—"}</td>
                 <td className="px-4 py-3 text-ink/60">
-                  {s.guardianIds.map((id) => guardiansById.get(id)?.nome).filter(Boolean).join(", ") || "—"}
+                  {/* Prioriza os responsáveis legais cadastrados (sempre
+                      preenchidos no cadastro) — só cai pro nome de quem tem
+                      acesso à Área da Família se não tiver responsável
+                      cadastrado, pra não ficar em branco à toa. */}
+                  {(s.responsaveis && s.responsaveis.length > 0
+                    ? s.responsaveis.map((r) => r.nome)
+                    : s.guardianIds.map((id) => guardiansById.get(id)?.nome)
+                  )
+                    .filter(Boolean)
+                    .join(", ") || "—"}
                 </td>
                 <td className="px-4 py-3">
                   <span className={`badge-soft ${s.status === "inativo" ? "bg-ink/5 text-ink/40" : ""}`}>{s.status}</span>
