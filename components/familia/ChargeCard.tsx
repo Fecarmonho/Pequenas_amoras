@@ -2,66 +2,61 @@ import { Charge } from "@/lib/types";
 import { statusEfetivo, STATUS_LABEL, STATUS_EMOJI } from "@/lib/charge-status";
 import { formatBRL, formatDate, formatCompetencia } from "@/lib/format";
 import { HiOutlineArrowDownTray } from "react-icons/hi2";
-import BerryIcon from "@/components/decor/BerryIcon";
 
-const CATEGORIA_LABEL: Record<Charge["categoria"], string> = {
-  mensalidade: "Mensalidade",
-  extra: "Cobrança extra",
-};
-
-/** Cartão em formato de "recibo" — perfuração no meio (as duas bolinhas
- * cortando a borda) separa os dados da cobrança do valor/status, como um
- * canhoto de boleto de verdade. */
-export default function ChargeCard({ charge, ocultarStatus }: { charge: Charge; ocultarStatus?: boolean }) {
+/** Linha compacta de mensalidade — mês/competência em destaque, data de
+ * vencimento embaixo, valor à direita (mesmo padrão do hub financeiro do
+ * admin, pra ficar consistente entre as duas telas). */
+export function MensalidadeRow({ charge, ocultarStatus }: { charge: Charge; ocultarStatus?: boolean }) {
   const status = statusEfetivo(charge);
   const boletoUrl = charge.boleto?.pdfUrl;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-white shadow-card">
-      <div className="flex items-center justify-between gap-2 border-b border-dashed border-amora-900/15 px-5 pb-3 pt-4">
-        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-amora-700">
-          <BerryIcon className="h-3.5 w-3.5" /> {CATEGORIA_LABEL[charge.categoria]}
-        </span>
-        {!ocultarStatus && (
-          <span className="text-[11px] font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
-        )}
-      </div>
-
-      <div className="px-5 py-4">
-        <p className="font-display text-sm font-bold text-amora-950">
-          {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
-        </p>
-        {charge.competencia && <p className="text-xs text-ink/50">{charge.descricao}</p>}
-        {charge.observacao && <p className="mt-1 text-xs text-ink/40">{charge.observacao}</p>}
-      </div>
-
-      {/* perfuração — as bolinhas usam a cor de fundo da página pra "furar" o recibo */}
-      <div className="relative border-t border-dashed border-amora-900/15">
-        <span className="absolute left-0 top-0 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paper" aria-hidden="true" />
-        <span className="absolute right-0 top-0 h-4 w-4 -translate-y-1/2 translate-x-1/2 rounded-full bg-paper" aria-hidden="true" />
-      </div>
-
-      <div className="flex items-center justify-between gap-3 bg-amora-50/60 px-5 py-4">
-        <div>
-          <p className="text-[11px] text-ink/40">Vencimento</p>
-          <p className="text-sm font-semibold text-ink/80">{formatDate(charge.vencimento)}</p>
+    <div className="border-b border-dashed border-amora-900/15 py-3 last:border-0">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold uppercase tracking-wide text-amora-700">
+            {charge.competencia ? formatCompetencia(charge.competencia) : charge.descricao}
+          </p>
+          <p className="truncate text-xs text-ink/40">Vencimento {formatDate(charge.vencimento)}</p>
         </div>
-        <div className="text-right">
-          <p className="text-[11px] text-ink/40">Valor</p>
-          <p className="font-mono text-lg font-bold text-amora-950">{formatBRL(charge.valor)}</p>
+        <div className="shrink-0 text-right">
+          <p className="font-mono text-base font-bold text-amora-950">{formatBRL(charge.valor)}</p>
+          {!ocultarStatus && (
+            <span className="text-[11px] font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
+          )}
         </div>
       </div>
-
       {boletoUrl && status !== "pago" && (
         <a
           href={boletoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn-primary flex items-center justify-center gap-1.5 px-5 py-3 text-sm font-bold text-white"
+          className="mt-2 flex items-center justify-center gap-1.5 rounded-full border border-amora-900/15 py-2 text-xs font-bold text-amora-700"
         >
-          <HiOutlineArrowDownTray className="h-4 w-4" /> Baixar boleto
+          <HiOutlineArrowDownTray className="h-3.5 w-3.5" /> Baixar boleto
         </a>
       )}
+    </div>
+  );
+}
+
+/** Linha compacta de cobrança extra — só a descrição escrita pelo admin
+ * (ex: "Diária do dia 07/07"), sem repetir "Cobrança extra" em cada
+ * linha (isso já fica só no título da seção). */
+export function ExtraRow({ charge, ocultarStatus }: { charge: Charge; ocultarStatus?: boolean }) {
+  const status = statusEfetivo(charge);
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-dashed border-amora-900/10 py-2.5 last:border-0">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-ink">{charge.descricao}</p>
+        <p className="truncate text-xs text-ink/40">Vence {formatDate(charge.vencimento)}</p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <span className="text-sm font-semibold text-ink">{formatBRL(charge.valor)}</span>
+        {!ocultarStatus && (
+          <span className="text-[11px] font-semibold">{STATUS_EMOJI[status]} {STATUS_LABEL[status]}</span>
+        )}
+      </div>
     </div>
   );
 }

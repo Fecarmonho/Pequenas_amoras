@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Charge, Student } from "@/lib/types";
 import { baixarReciboPdf, enviarReciboPdf } from "@/lib/receipt-pdf";
 import { formatBRL } from "@/lib/format";
-import ChargeCard from "@/components/familia/ChargeCard";
+import { MensalidadeRow, ExtraRow } from "@/components/familia/ChargeCard";
 import { HiOutlineArrowDownTray, HiOutlineShare } from "react-icons/hi2";
 
 export default function ReciboSection({
@@ -53,28 +53,39 @@ export default function ReciboSection({
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 p-4">
+        <div className="px-5 py-2">
           {mensalidades.length === 0 && extras.length === 0 ? (
             <p className="py-6 text-center text-sm text-ink/40">Nenhuma cobrança lançada ainda.</p>
           ) : (
-            [...mensalidades, ...extras].map((c) => (
-              <ChargeCard key={c.id} charge={c} ocultarStatus={exportando !== null} />
+            mensalidades.map((c) => (
+              <MensalidadeRow key={c.id} charge={c} ocultarStatus={exportando !== null} />
             ))
           )}
+
+          {extras.length > 0 && (
+            <div className="mt-2 border-t border-amora-900/10 pt-3">
+              <p className="text-xs font-bold uppercase leading-normal tracking-wide text-amora-700">Cobranças extras</p>
+              <div className="mt-1">
+                {extras.map((c) => (
+                  <ExtraRow key={c.id} charge={c} ocultarStatus={exportando !== null} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(mensalidades.length > 0 || extras.length > 0) && (
+            <div className="mt-3 flex items-center justify-between border-t border-amora-900/10 pt-3">
+              <p className="text-sm font-bold uppercase leading-normal tracking-wide text-amora-950">Total</p>
+              <p className="font-mono text-lg font-bold leading-normal text-amora-950">{formatBRL(total)}</p>
+            </div>
+          )}
+
+          {chavePix && (
+            <p className="mt-3 mb-1 rounded-lg bg-folha/10 px-3 py-2 text-center text-xs font-semibold leading-normal text-folha">
+              Chave PIX para pagamento: {chavePix}
+            </p>
+          )}
         </div>
-
-        {(mensalidades.length > 0 || extras.length > 0) && (
-          <div className="mx-4 mb-4 flex items-center justify-between border-t border-amora-900/10 pt-3">
-            <p className="text-sm font-bold uppercase leading-normal tracking-wide text-amora-950">Total</p>
-            <p className="font-mono text-lg font-bold leading-normal text-amora-950">{formatBRL(total)}</p>
-          </div>
-        )}
-
-        {chavePix && (
-          <p className="mx-4 mb-4 rounded-lg bg-folha/10 px-3 py-2 text-center text-xs font-semibold leading-normal text-folha">
-            Chave PIX para pagamento: {chavePix}
-          </p>
-        )}
       </div>
 
       <div className="flex gap-3">
