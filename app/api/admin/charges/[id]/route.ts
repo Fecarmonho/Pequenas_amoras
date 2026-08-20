@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin-session";
 import { updateCharge, deleteCharge } from "@/lib/charges-db";
 import { logAudit } from "@/lib/audit-db";
+import { hojeISO } from "@/lib/hoje";
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getAdminSession();
@@ -11,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   // Marcar como pago registra a data — nunca sobrescreve um pagamento já
   // registrado se só o valor/vencimento estiver sendo editado.
   if (data.status === "pago" && !data.pagoEm) {
-    data.pagoEm = new Date().toISOString().slice(0, 10);
+    data.pagoEm = hojeISO();
   }
 
   await updateCharge(params.id, data);

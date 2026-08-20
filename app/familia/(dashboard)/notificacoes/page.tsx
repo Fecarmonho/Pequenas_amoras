@@ -4,6 +4,7 @@ import { getStudentsByIds } from "@/lib/students-db";
 import { getChargesByStudents } from "@/lib/charges-db";
 import { getAvisosParaEstudante } from "@/lib/avisos-db";
 import { statusEfetivo } from "@/lib/charge-status";
+import { hojeISO } from "@/lib/hoje";
 import { formatBRL, formatDate } from "@/lib/format";
 import { HiOutlineArrowLeft, HiOutlineExclamationTriangle, HiOutlineClock, HiOutlineMegaphone } from "react-icons/hi2";
 import { Aviso } from "@/lib/types";
@@ -26,9 +27,8 @@ export default async function NotificacoesPage() {
   const charges = await getChargesByStudents(students.map((s) => s.id));
   const studentsById = new Map(students.map((s) => [s.id, s]));
 
-  const hoje = new Date();
-  const limite = new Date(hoje);
-  limite.setDate(limite.getDate() + DIAS_ALERTA_VENCIMENTO);
+  const [ano, mes, dia] = hojeISO().split("-").map(Number);
+  const limite = new Date(Date.UTC(ano, mes - 1, dia + DIAS_ALERTA_VENCIMENTO));
   const limiteIso = limite.toISOString().slice(0, 10);
 
   const vencidas = charges.filter((c) => statusEfetivo(c) === "vencido");

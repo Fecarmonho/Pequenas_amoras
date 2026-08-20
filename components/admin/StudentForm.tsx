@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Guardian, PessoaAutorizada, Student, MODALIDADES, PERIODOS } from "@/lib/types";
 import { processarFoto } from "@/lib/image-compress";
 import { slugify } from "@/lib/slug";
 import { onlyDigits } from "@/lib/cpf";
-import { HiOutlineTrash, HiOutlinePlus, HiOutlineClipboardDocument } from "react-icons/hi2";
+import { HiOutlineTrash, HiOutlinePlus, HiOutlineClipboardDocument, HiOutlineArrowLeft } from "react-icons/hi2";
 import { FaWhatsapp } from "react-icons/fa6";
 
 const inputClass =
@@ -116,6 +117,9 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [credenciais, setCredenciais] = useState<Credenciais | null>(null);
+  // Guarda o id do estudante assim que ele é criado — usado pra abrir a
+  // tela de credenciais (quando aplicável) sabendo pra onde voltar depois.
+  const [createdId, setCreatedId] = useState<string | null>(null);
 
   // Sugere o usuário a partir do nome do aluno — o admin pode editar à
   // vontade (para de seguir o nome assim que ele mexer no campo).
@@ -219,6 +223,8 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Não foi possível salvar.");
 
+      if (!isEdit && data.student?.id) setCreatedId(data.student.id);
+
       if (data.credenciais) {
         setCredenciais(data.credenciais);
         return;
@@ -231,8 +237,11 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
         setSaved(true);
         router.refresh();
       } else {
-        router.push("/admin/estudantes");
-        router.refresh();
+        // Mesma ideia pro cadastro novo: em vez de voltar pra lista, passa
+        // a editar o estudante recém-criado — dá pra continuar preenchendo
+        // Responsáveis/Mensalidade sem perder o lugar. "Voltar" na tela
+        // (ou depois de ver as credenciais) é que leva pra lista.
+        router.replace(`/admin/estudantes/${data.student.id}`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar estudante.");
@@ -280,8 +289,8 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
         credenciais={credenciais}
         onVoltar={() => {
           setCredenciais(null);
-          if (!isEdit) {
-            router.push("/admin/estudantes");
+          if (!isEdit && createdId) {
+            router.replace(`/admin/estudantes/${createdId}`);
           } else {
             router.refresh();
           }
@@ -291,7 +300,11 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-amora-900/8 bg-white shadow-card">
+    <div className="flex flex-col gap-3">
+      <Link href="/admin/estudantes" className="flex w-fit items-center gap-1.5 text-sm font-semibold text-amora-700 hover:underline">
+        <HiOutlineArrowLeft className="h-4 w-4" /> Voltar pra lista
+      </Link>
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-amora-900/8 bg-white shadow-card">
       <div className="flex gap-1 overflow-x-auto border-b border-amora-900/8 px-3 pt-3">
         {TABS.map((t) => (
           <button
@@ -558,6 +571,7 @@ export default function StudentForm({ student, guardian }: { student?: Student; 
           {loading ? "Salvando..." : isEdit ? "Salvar alterações" : "Cadastrar estudante"}
         </button>
       </div>
-    </form>
+      </form>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import { getGuardianById } from "@/lib/guardians-db";
 import { getConfiguracoes } from "@/lib/config-db";
 import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
 import { statusEfetivo } from "@/lib/charge-status";
+import { hojeISO } from "@/lib/hoje";
 import { formatBRL, formatCompetencia } from "@/lib/format";
 import { buildWhatsappLink, numeroWhatsapp } from "@/lib/whatsapp";
 import StatCard from "@/components/admin/StatCard";
@@ -40,7 +41,7 @@ export default async function AdminDashboardPage() {
   // extra lançada não deve virar um alerta separado, ela só entra na
   // conta do aluno e viaja junto quando a mensalidade disparar (mesmo que
   // o vencimento da extra seja outro dia).
-  const hojeStr = new Date().toISOString().slice(0, 10);
+  const hojeStr = hojeISO();
   const mensalidadesHoje = charges.filter(
     (c) => c.categoria === "mensalidade" && c.status === "pendente" && c.vencimento === hojeStr
   );

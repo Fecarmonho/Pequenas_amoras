@@ -1,22 +1,23 @@
 import "server-only";
 import { Student } from "@/lib/types";
 import { getChargesByStudent, createCharge } from "@/lib/charges-db";
+import { hojeISO } from "@/lib/hoje";
 
 function competenciaAtual(): string {
-  return new Date().toISOString().slice(0, 7); // YYYY-MM
+  return hojeISO().slice(0, 7); // YYYY-MM, no fuso de Brasília
 }
 
 function proximaCompetencia(competencia: string): string {
   const [ano, mes] = competencia.split("-").map(Number);
-  const data = new Date(ano, mes, 1); // mes (1-12) como índice 0-based já cai no mês seguinte
-  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`;
+  const data = new Date(Date.UTC(ano, mes, 1)); // mes (1-12) como índice 0-based já cai no mês seguinte
+  return `${data.getUTCFullYear()}-${String(data.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 function vencimentoParaCompetencia(competencia: string, dia: number): string {
   const [ano, mes] = competencia.split("-").map(Number);
-  const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
+  const ultimoDiaDoMes = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
   const diaAjustado = Math.min(dia, ultimoDiaDoMes);
-  return new Date(ano, mes - 1, diaAjustado).toISOString().slice(0, 10);
+  return new Date(Date.UTC(ano, mes - 1, diaAjustado)).toISOString().slice(0, 10);
 }
 
 /**

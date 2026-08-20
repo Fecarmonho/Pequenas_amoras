@@ -3,6 +3,7 @@ import { getAllCharges } from "@/lib/charges-db";
 import { getConfiguracoes } from "@/lib/config-db";
 import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
 import { statusEfetivo } from "@/lib/charge-status";
+import { hojeISO } from "@/lib/hoje";
 import { formatCompetencia } from "@/lib/format";
 import { Charge, Student } from "@/lib/types";
 import ChavePixConfig from "@/components/admin/ChavePixConfig";
@@ -38,7 +39,7 @@ export default async function MensalidadesPage() {
 
   const charges = await getAllCharges();
   const studentsPorId = new Map(students.map((s) => [s.id, s]));
-  const mesAtual = new Date().toISOString().slice(0, 7);
+  const mesAtual = hojeISO().slice(0, 7);
 
   // Mês vigente por aluno, ainda não paga.
   const vigentePorAluno = new Map<string, Charge>();

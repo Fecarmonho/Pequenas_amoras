@@ -1,11 +1,11 @@
 import { Charge, StatusCobrancaEfetivo } from "@/lib/types";
+import { hojeISO } from "@/lib/hoje";
 
 /** "Vencido" nunca é gravado no banco — é sempre derivado na hora da
  * leitura, evitando precisar de um cron pra manter o status em dia. */
 export function statusEfetivo(charge: Pick<Charge, "status" | "vencimento">): StatusCobrancaEfetivo {
   if (charge.status === "pago") return "pago";
-  const hoje = new Date().toISOString().slice(0, 10);
-  return charge.vencimento < hoje ? "vencido" : "pendente";
+  return charge.vencimento < hojeISO() ? "vencido" : "pendente";
 }
 
 export const STATUS_LABEL: Record<StatusCobrancaEfetivo, string> = {
