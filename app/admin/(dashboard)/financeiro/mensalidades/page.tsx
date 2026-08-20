@@ -1,7 +1,7 @@
 import { getAllStudents } from "@/lib/students-db";
 import { getAllCharges } from "@/lib/charges-db";
 import { getConfiguracoes } from "@/lib/config-db";
-import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
+import { garantirMensalidadesEmLote } from "@/lib/mensalidade-renovacao";
 import { statusEfetivo } from "@/lib/charge-status";
 import { hojeISO } from "@/lib/hoje";
 import { formatCompetencia } from "@/lib/format";
@@ -30,14 +30,16 @@ function linhaPorAluno(s: Student, charge: Charge | undefined): MensalidadeStude
 }
 
 export default async function MensalidadesPage() {
-  const [students, config] = await Promise.all([getAllStudents(), getConfiguracoes()]);
+  const [students, config, chargesExistentes] = await Promise.all([getAllStudents(), getConfiguracoes(), getAllCharges()]);
 
   // A mensalidade do mês renova sozinha (repete o valor da última) — só
   // precisa checar isso pros estudantes ativos, toda vez que essa tela
-  // abre, antes de buscar as cobranças pra exibir.
-  await Promise.all(students.filter((s) => s.status === "ativo").map((s) => garantirMensalidadesAteHoje(s)));
-
-  const charges = await getAllCharges();
+  // abre, antes de buscar as cobranças pra exibir. Em lote (reaproveitando
+  // as cobranças já buscadas acima, uma escrita só) em vez de uma consulta
+  // e uma escrita por aluno — ficava lento com muitos estudantes.
+  const ativos = students.filter((s) => s.status === "ativo");
+  const novasCharges = await garantirMensalidadesEmLote(ativos, chargesExistentes);
+  const charges = [...chargesExistentes, ...novasCharges];
   const studentsPorId = new Map(students.map((s) => [s.id, s]));
   const mesAtual = hojeISO().slice(0, 7);
 

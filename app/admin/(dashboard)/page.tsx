@@ -4,7 +4,7 @@ import { getAllCharges } from "@/lib/charges-db";
 import { getAllAvisos } from "@/lib/avisos-db";
 import { getGuardianById } from "@/lib/guardians-db";
 import { getConfiguracoes } from "@/lib/config-db";
-import { garantirMensalidadesAteHoje } from "@/lib/mensalidade-renovacao";
+import { garantirMensalidadesEmLote } from "@/lib/mensalidade-renovacao";
 import { statusEfetivo } from "@/lib/charge-status";
 import { hojeISO } from "@/lib/hoje";
 import { formatBRL, formatCompetencia } from "@/lib/format";
@@ -18,14 +18,22 @@ import { Charge } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [students, avisos, config] = await Promise.all([getAllStudents(), getAllAvisos(), getConfiguracoes()]);
+  const [students, avisos, config, chargesExistentes] = await Promise.all([
+    getAllStudents(),
+    getAllAvisos(),
+    getConfiguracoes(),
+    getAllCharges(),
+  ]);
 
   // Garante que a mensalidade do mês já exista antes de calcular "vencendo
   // hoje" — sem isso, uma mensalidade só aparece aqui depois que alguém
-  // abrir a tela de Financeiro > Mensalidades ao menos uma vez no mês.
-  await Promise.all(students.filter((s) => s.status === "ativo").map((s) => garantirMensalidadesAteHoje(s)));
-
-  const charges = await getAllCharges();
+  // abrir a tela de Financeiro > Mensalidades ao menos uma vez no mês. Em
+  // lote (uma consulta + uma escrita só, reaproveitando as cobranças já
+  // buscadas acima) em vez de uma consulta e uma escrita por aluno — isso
+  // ficava bem lento com muitos estudantes cadastrados.
+  const ativos = students.filter((s) => s.status === "ativo");
+  const novasCharges = await garantirMensalidadesEmLote(ativos, chargesExistentes);
+  const charges = [...chargesExistentes, ...novasCharges];
 
   const pagas = charges.filter((c) => statusEfetivo(c) === "pago");
   const pendentes = charges.filter((c) => statusEfetivo(c) === "pendente");

@@ -39,6 +39,21 @@ export async function createCharge(charge: Omit<Charge, "id">): Promise<Charge> 
   return full;
 }
 
+/** Cria várias cobranças de uma vez, em lotes de escrita do Firestore
+ * (até 500 por lote) em vez de um `set` por cobrança — usado pela
+ * renovação automática de mensalidade quando precisa gerar pra muitos
+ * alunos de uma vez (ver garantirMensalidadesEmLote), bem mais rápido
+ * que uma escrita de cada vez. */
+export async function createChargesEmLote(charges: Omit<Charge, "id">[]): Promise<Charge[]> {
+  const cheias: Charge[] = charges.map((c) => ({ ...c, id: uid() }));
+  for (const grupo of chunk(cheias, 500)) {
+    const lote = adminDb.batch();
+    for (const c of grupo) lote.set(adminDb.collection(COLLECTION).doc(c.id), c);
+    await lote.commit();
+  }
+  return cheias;
+}
+
 export async function updateCharge(id: string, data: Partial<Charge>): Promise<void> {
   await adminDb.collection(COLLECTION).doc(id).update(data);
 }
