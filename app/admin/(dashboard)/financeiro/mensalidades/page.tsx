@@ -22,6 +22,8 @@ function linhaPorAluno(s: Student, charge: Charge | undefined): MensalidadeStude
     competencia: charge?.competencia ?? null,
     valor: charge?.valor ?? null,
     vencimento: charge?.vencimento ?? null,
+    valorFixo: s.valorMensalidade ?? null,
+    diaVencimentoFixo: s.diaVencimento ?? null,
     status: charge ? statusEfetivo(charge) : null,
   };
 }

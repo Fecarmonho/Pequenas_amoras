@@ -18,6 +18,11 @@ export interface MensalidadeStudentRow {
   competencia: string | null;
   valor: number | null;
   vencimento: string | null;
+  /** Valor e dia fixos configurados no cadastro do estudante — usados só
+   * na aba "Todas" (não dependem de existir cobrança em aberto, ao
+   * contrário de `valor`/`vencimento` acima, que são da cobrança). */
+  valorFixo: number | null;
+  diaVencimentoFixo: number | null;
   status: StatusCobrancaEfetivo | null;
 }
 
@@ -166,8 +171,8 @@ export default function MensalidadesTabs({
                     <td className="px-4 py-3">
                       <NomeAluno studentId={r.studentId} nome={r.studentNome} />
                     </td>
-                    <td className="px-4 py-3 text-ink/60">{r.valor !== null ? formatBRL(r.valor) : "—"}</td>
-                    <td className="px-4 py-3 text-ink/60">{r.vencimento ? formatDate(r.vencimento) : "—"}</td>
+                    <td className="px-4 py-3 text-ink/60">{r.valorFixo !== null ? formatBRL(r.valorFixo) : "—"}</td>
+                    <td className="px-4 py-3 text-ink/60">{r.diaVencimentoFixo !== null ? `Dia ${r.diaVencimentoFixo}` : "—"}</td>
                   </tr>
                 ))}
                 {todasEmAberto.length === 0 && (

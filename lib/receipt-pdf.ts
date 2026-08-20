@@ -20,10 +20,15 @@ async function gerarPdfBlob(elemento: HTMLElement): Promise<Blob> {
   const canvas = await html2canvas(elemento, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
   const imgData = canvas.toDataURL("image/png");
 
+  // Página do tamanho exato do recibo (+ margem) em vez de A4 fixo — com
+  // A4 fixo, um recibo com várias cobranças ficava mais alto que a
+  // página e a parte de baixo (ex: a chave PIX) saía cortada, sem
+  // segunda página pra continuar.
+  const margemMm = 10;
   const larguraMm = 190;
   const alturaMm = (canvas.height * larguraMm) / canvas.width;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  doc.addImage(imgData, "PNG", 10, 10, larguraMm, alturaMm);
+  const doc = new jsPDF({ unit: "mm", format: [larguraMm + margemMm * 2, alturaMm + margemMm * 2] });
+  doc.addImage(imgData, "PNG", margemMm, margemMm, larguraMm, alturaMm);
 
   return doc.output("blob");
 }
