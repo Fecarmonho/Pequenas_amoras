@@ -44,7 +44,12 @@ function DonutChart({ pct }: { pct: number }) {
 function BarraAluno({ nome, valor, total }: { nome: string; valor: number; total: number }) {
   const pct = total > 0 ? Math.round((valor / total) * 100) : 0;
   return (
-    <div data-linha-aluno>
+    // `mb-3` direto aqui, não `space-y-3` no container da lista: o
+    // space-y do Tailwind aplica a margem via seletor de irmãos
+    // (`> * + *`), e o html2canvas não calcula esse valor direito — as
+    // linhas saíam sobrepostas, a barrinha de uma linha cortando o nome
+    // da linha anterior. Margem direta na própria linha ele reproduz certo.
+    <div data-linha-aluno className="mb-3">
       <div className="flex items-center justify-between text-xs">
         <span className="truncate pr-2 font-medium text-ink/70">{nome}</span>
         <span className="shrink-0 font-mono text-ink/50">{formatBRL(valor)}</span>
@@ -193,7 +198,7 @@ export default function RelatorioMensal({
 
             <div className="mt-8">
               <p className="text-xs font-bold uppercase tracking-wide text-amora-700">Por aluno</p>
-              <div className="mt-3 space-y-3">
+              <div className="mt-3">
                 {porAluno.map((a) => (
                   <BarraAluno key={a.studentId} nome={a.nome} valor={a.valor} total={total} />
                 ))}
