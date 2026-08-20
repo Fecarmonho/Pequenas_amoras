@@ -30,7 +30,17 @@ export default async function AdminDashboardPage() {
   const pagas = charges.filter((c) => statusEfetivo(c) === "pago");
   const pendentes = charges.filter((c) => statusEfetivo(c) === "pendente");
   const vencidas = charges.filter((c) => statusEfetivo(c) === "vencido");
-  const recebido = pagas.reduce((soma, c) => soma + c.valor, 0);
+
+  // "Recebido" zera todo início de mês — conta só o que foi pago dentro
+  // do mês atual (mensalidade ou extra), não o total histórico. "Em
+  // aberto" continua somando tudo que ainda falta receber (qualquer
+  // mês), sempre a partir das cobranças de verdade já geradas pro
+  // sistema (garantirMensalidadesAteHoje acima garante que a mensalidade
+  // do mês de cada aluno ativo já existe antes dessa conta).
+  const mesAtual = hojeISO().slice(0, 7);
+  const recebido = pagas
+    .filter((c) => c.pagoEm?.slice(0, 7) === mesAtual)
+    .reduce((soma, c) => soma + c.valor, 0);
   const emAberto = [...pendentes, ...vencidas].reduce((soma, c) => soma + c.valor, 0);
 
   const estudantesRecentes = [...students]
